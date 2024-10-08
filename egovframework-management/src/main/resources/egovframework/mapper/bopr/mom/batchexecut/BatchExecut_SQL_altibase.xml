@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:54 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BatchExecutDAO">
+
+    <resultMap id="batchExecutList" type="egovframework.bopr.mom.service.BatchExecutVO">
+        <result property="batchExecutNo" column="BATCH_EXECUT_NO"/>
+        <result property="batchId" column="BATCH_ID"/>
+        <result property="batchNm" column="BATCH_NM"/>
+        <result property="jobExecutionId" column="JOB_EXECUTION_ID"/>
+        <result property="executTime" column="EXECUT_TIME"/>
+        <result property="executDate" column="EXECUT_DATE"/>
+        <result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+    </resultMap>
+
+    <resultMap id="batchExecut" type="egovframework.bopr.mom.service.BatchExecutVO">
+    	<result property="batchExecutNo" column="BATCH_EXECUT_NO"/>
+    	<result property="batchId" column="BATCH_ID"/>
+    	<result property="batchNm" column="BATCH_NM"/>
+    	<result property="jobInstanceId" column="JOB_INSTANCE_ID"/>
+    	<result property="jobExecutionId" column="JOB_EXECUTION_ID"/>
+    	<result property="jobStartTime" column="JOB_START_TIME"/>
+    	<result property="jobEndTime" column="JOB_END_TIME"/>
+    	<result property="status" column="STATUS"/>
+    	<result property="executTime" column="EXECUT_TIME"/>
+    	<result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+    	<result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+    </resultMap>
+
+	<select id="selectBatchExecutList" parameterType="egovframework.bopr.mom.service.BatchExecutVO" resultMap="batchExecutList">
+
+		SELECT A.*
+		FROM
+		    ( SELECT A.*, ROWNUM as RN
+		      FROM
+			      ( SELECT
+			      	    A.BATCH_EXECUT_NO
+      		  		  , A.BATCH_ID
+		        	  , B.BATCH_NM
+		  		      , A.JOB_EXECUTION_ID
+      		  		  , SUBSTR(A.EXECUT_TIME, 9, 2) || ':' || SUBSTR(A.EXECUT_TIME, 11, 2) || ':' || SUBSTR(A.EXECUT_TIME, 13, 2) as EXECUT_TIME
+		        	  , SUBSTR(A.EXECUT_TIME, 1, 4) || '-' || SUBSTR(A.EXECUT_TIME, 5, 2) || '-' || SUBSTR(A.EXECUT_TIME, 7, 2) as EXECUT_DATE
+		  		      , TO_CHAR(A.FRST_REGIST_PNTTM, 'YYYY-MM-DD') AS FRST_REGIST_PNTTM
+                	  , TO_CHAR(A.LAST_UPDT_PNTTM, 'YYYY-MM-DD') AS LAST_UPDT_PNTTM
+		      	    FROM
+		    	        TN_BATCH_EXECUT A
+		  		      , TN_BATCH B
+			        WHERE A.BATCH_ID = B.BATCH_ID
+			          AND B.DELETE_AT = 'N'
+
+			      <if test="searchCondition == &quot;A&quot;">AND
+			        A.BATCH_EXECUT_NO LIKE '%' || #{searchKeyword} || '%'
+			      </if>
+			      <if test="searchCondition == &quot;B&quot;">AND
+			        A.BATCH_ID LIKE '%' || #{searchKeyword} || '%'
+			      </if>
+			      <if test="searchCondition == &quot;C&quot;">AND
+			        B.BATCH_NM LIKE '%' || #{searchKeyword} || '%'
+			      </if>
+			      <if test="searchCondition == &quot;D&quot;">AND
+			        B.JOB_EXECUTION_ID LIKE '%' || #{searchKeyword} || '%'
+			      </if>
+			      <if test="searchCondition == &quot;E&quot;">AND	
+			        A.EXECUT_TIME BETWEEN #{searchKeywordFrom} || '000000' AND #{searchKeywordTo} || '235959'
+			      </if>
+
+			        ORDER BY A.BATCH_EXECUT_NO DESC
+		          ) A
+		      WHERE ROWNUM &lt;= #{firstIndex} + #{recordCountPerPage}
+		    ) A
+		WHERE RN BETWEEN #{firstIndex} + 1 AND #{firstIndex} + #{recordCountPerPage}
+
+	</select>
+
+	<select id="selectBatchExecuListTotCnt" parameterType="egovframework.bopr.mom.service.BatchExecutVO" resultType="int">
+
+		SELECT
+		    COUNT(1) AS TOT_CNT
+		FROM
+		    TN_BATCH_EXECUT A
+		  , TN_BATCH B
+		WHERE A.BATCH_ID = B.BATCH_ID
+		  AND B.DELETE_AT = 'N'
+
+		<if test="searchCondition == &quot;A&quot;">AND
+		  A.BATCH_EXECUT_NO LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="searchCondition == &quot;B&quot;">AND
+		  A.BATCH_ID LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="searchCondition == &quot;C&quot;">AND
+		  B.BATCH_NM LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="searchCondition == &quot;D&quot;">AND
+		  B.JOB_EXECUTION_ID LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="searchCondition == &quot;E&quot;">AND
+		  A.EXECUT_TIME BETWEEN #{searchKeywordFrom} || '000000' AND #{searchKeywordTo} || '235959'
+		</if>
+	</select>
+
+	<select id="selectBatchExecut" parameterType="egovframework.bopr.mom.service.BatchExecutVO" resultMap="batchExecut">
+
+	    SELECT
+  		    A.BATCH_EXECUT_NO
+  		  , A.BATCH_ID
+  		  , B.BATCH_NM
+  		  , D.JOB_INSTANCE_ID
+		  , A.JOB_EXECUTION_ID
+		  , TO_CHAR(C.START_TIME, 'YYYY-MM-DD HH24:MI:SS') as JOB_START_TIME
+		  , TO_CHAR(C.END_TIME, 'YYYY-MM-DD HH24:MI:SS') as JOB_END_TIME
+		  , C.STATUS
+		  , SUBSTR(A.EXECUT_TIME, 1, 4) || '-' || SUBSTR(A.EXECUT_TIME, 5, 2) || '-' || SUBSTR(A.EXECUT_TIME, 7, 2)
+		          || ' ' || SUBSTR(A.EXECUT_TIME, 9, 2) || ':' || SUBSTR(A.EXECUT_TIME, 11, 2) || ':' || SUBSTR(A.EXECUT_TIME, 13, 2) as EXECUT_TIME
+		  , TO_CHAR(A.FRST_REGIST_PNTTM, 'YYYY-MM-DD') AS FRST_REGIST_PNTTM
+		  , TO_CHAR(A.LAST_UPDT_PNTTM, 'YYYY-MM-DD') AS LAST_UPDT_PNTTM
+		FROM
+		    TN_BATCH_EXECUT A
+		  , TN_BATCH B
+		  , BATCH_JOB_EXECUTION C
+		  , BATCH_JOB_INSTANCE D
+		WHERE A.BATCH_ID = B.BATCH_ID
+		  AND B.DELETE_AT = 'N'
+		  AND A.JOB_EXECUTION_ID = C.JOB_EXECUTION_ID
+		  AND C.JOB_INSTANCE_ID = D.JOB_INSTANCE_ID
+		  AND A.BATCH_EXECUT_NO = #{batchExecutNo}
+
+	</select>
+
+	<insert id="insertBatchExecut" parameterType="egovframework.bopr.mom.service.BatchExecutVO">
+
+		INSERT INTO TN_BATCH_EXECUT
+		(
+		    BATCH_EXECUT_NO
+		  , BATCH_ID
+		  , JOB_EXECUTION_ID
+		  , EXECUT_TIME
+		  , FRST_REGISTER_ID
+		  , FRST_REGIST_PNTTM
+		  , LAST_UPDUSR_ID
+		  , LAST_UPDT_PNTTM
+		)
+		VALUES
+		(
+		    #{batchExecutNo}
+		  , #{batchId}
+		  , #{jobExecutionId}
+		  , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		  , #{frstRegisterId}
+		  , SYSDATE
+		  , #{lastUpdusrId}
+		  , SYSDATE
+		)
+
+    </insert>
+
+    <update id="updateBatchExecut" parameterType="egovframework.bopr.mom.service.BatchExecutVO">
+
+    	UPDATE TN_BATCH_EXECUT
+    	SET
+    		JOB_EXECUTION_ID = #{jobExecutionId}
+    	  , LAST_UPDUSR_ID = #{lastUpdusrId}
+    	  , LAST_UPDT_PNTTM = SYSDATE
+    	WHERE BATCH_EXECUT_NO = #{batchExecutNo}
+    	  AND BATCH_ID = #{batchId}
+
+    </update>
+
+    <delete id="deleteBatchExecut" parameterType="egovframework.bopr.mom.service.BatchExecutVO">
+
+    	DELETE FROM TN_BATCH_EXECUT
+    	WHERE 1=1
+
+    	<if test="batchExecutNo != null and batchExecutNo != ''">AND
+    	  BATCH_EXECUT_NO = #{batchExecutNo}
+    	</if>
+    	<if test="batchId != null and batchId != ''">AND
+    	  BATCH_EXECUT_NO = #{batchId}
+    	</if>
+    </delete>
+
+    <insert id="insertBatchExecutParamtr" parameterType="egovframework.bopr.mom.service.BatchExecutParamtrVO">
+
+    	INSERT INTO TN_BATCH_EXECUT_PARAMTR
+    	(
+    		BATCH_EXECUT_NO
+    	  , BATCH_ID
+    	  , PARAMTR_NM
+    	  , PARAMTR
+    	)
+    	VALUES
+    	(
+    		#{batchExecutNo}
+    	  , #{batchId}
+    	  , #{paramtrNm}
+    	  , #{paramtr}
+    	)
+
+    </insert>
+
+    <delete id="deleteBatchExecutParamtr" parameterType="egovframework.bopr.mom.service.BatchExecutVO">
+
+    	DELETE FROM TN_BATCH_EXECUT_PARAMTR
+    	WHERE 1=1
+
+    	<if test="batchExecutNo != null and batchExecutNo != ''">AND
+    	  BATCH_EXECUT_NO = #{batchExecutNo}
+    	</if>
+    	<if test="batchId != null and batchId != ''">AND
+    	  BATCH_EXECUT_NO = #{batchId}
+    	</if>
+    </delete>
+</mapper>

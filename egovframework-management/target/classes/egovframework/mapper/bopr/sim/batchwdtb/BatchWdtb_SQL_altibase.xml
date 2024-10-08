@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:55 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BatchWdtbDAO">
+
+    <resultMap id="batchWdtb" type="egovframework.bopr.sim.service.BatchWdtbVO">
+        <result property="jobDlbrtNo" column="JOB_DLBRT_NO"/>
+        <result property="jobSeCode" column="JOB_SE_CODE"/>
+        <result property="jobSeCodeNm" column="JOB_SE_CODE_NM"/>
+        <result property="jobDlbrtNm" column="JOB_DLBRT_NM"/>
+        <result property="jobDlbrtCn" column="JOB_DLBRT_CN"/>
+        <result property="batchDlbrtNo" column="BATCH_DLBRT_NO"/>
+        <result property="batchId" column="BATCH_ID"/>
+        <result property="batchNm" column="BATCH_NM"/>
+        <result property="batchDc" column="BATCH_DC"/>
+        <result property="testAt" column="TEST_AT"/>
+        <result property="wdtbAt" column="WDTB_AT"/>
+        <result property="wdtbAtNm" column="WDTB_AT_NM"/>
+        <result property="processSeCode" column="PROCESS_SE_CODE"/>
+        <result property="processSeCodeNm" column="PROCESS_SE_CODE_NM"/>
+    </resultMap>
+
+    <resultMap id="batchWdtbList" type="egovframework.bopr.sim.service.BatchWdtbVO">
+        <result property="jobDlbrtNo" column="JOB_DLBRT_NO"/>
+        <result property="jobSeCodeNm" column="JOB_SE_CODE_NM"/>
+        <result property="batchDlbrtNo" column="BATCH_DLBRT_NO"/>
+        <result property="batchId" column="BATCH_ID"/>
+        <result property="batchNm" column="BATCH_NM"/>
+        <result property="processSeCode" column="PROCESS_SE_CODE"/>
+        <result property="wdtbAt" column="WDTB_AT"/>
+    </resultMap>
+
+    <resultMap id="atchFile" type="egovframework.bopr.sim.service.BatchAtchFileVO">
+        <result property="atchFileId" column="ATCH_FILE_ID"/>
+        <result property="atchSeCode" column="ATCH_SE_CODE"/>
+        <result property="wdtbPath" column="WDTB_PATH"/>
+        <result property="processSeCode" column="PROCESS_SE_CODE"/>
+    </resultMap>
+
+    <select id="selectBatchWdtbList" parameterType="egovframework.bopr.sim.service.BatchWdtbVO" resultMap="batchWdtbList">
+
+        SELECT
+            A.*
+        FROM
+            ( SELECT A.*, ROWNUM as RN
+              FROM
+                  ( SELECT
+                        A.JOB_DLBRT_NO
+                      , ( SELECT S.CODE_NM
+                          FROM TC_CMMNDETAILCODE S
+                          WHERE S.CODE_ID = 'BO001'
+                            AND S.CODE = C.JOB_SE_CODE ) as JOB_SE_CODE_NM
+                      , A.BATCH_DLBRT_NO
+                      , A.BATCH_ID
+                      , A.BATCH_NM
+                      , ( SELECT S.CODE_NM
+                          FROM TC_CMMNDETAILCODE S
+                          WHERE S.CODE_ID = 'BO011'
+                            AND S.CODE = A.PROCESS_SE_CODE ) as PROCESS_SE_CODE
+                      , ( SELECT S.CODE_NM
+                          FROM TC_CMMNDETAILCODE S
+                          WHERE S.CODE_ID = 'BO012'
+                            AND S.CODE = NVL(A.WDTB_AT, 'N') ) as WDTB_AT
+                    FROM
+                        TN_BATCH_DLBRT A
+                      , TN_BATCH_DLBRT_RESULT B
+                      , TN_JOB_DLBRT C
+                    WHERE 1 = 1
+                      AND A.JOB_DLBRT_NO = B.JOB_DLBRT_NO
+                      AND A.BATCH_DLBRT_NO = B.BATCH_DLBRT_NO
+                      AND B.BATCH_DLBRT_RESULT_NO = ( SELECT MAX(S.BATCH_DLBRT_RESULT_NO)
+                                                        FROM TN_BATCH_DLBRT_RESULT S
+                                                       WHERE S.JOB_DLBRT_NO = A.JOB_DLBRT_NO
+                                                         AND S.BATCH_DLBRT_NO = A.BATCH_DLBRT_NO )
+                      AND B.BATCH_DLBRT_RESULT_CODE = 'CN'
+                      AND A.JOB_DLBRT_NO = C.JOB_DLBRT_NO
+
+                  <if test="searchCondition == &quot;A&quot;">AND
+                      A.JOB_DLBRT_NO LIKE '%' || #{searchKeyword} || '%'
+                  </if>
+                  <if test="searchCondition == &quot;B&quot;">AND
+                      A.BATCH_DLBRT_NO LIKE '%' || #{searchKeyword} || '%'
+                  </if>
+                  <if test="searchCondition == &quot;C&quot;">AND
+                      A.BATCH_ID LIKE '%' || #{searchKeyword} || '%'
+                  </if>
+                  <if test="searchCondition == &quot;D&quot;">AND
+                      A.BATCH_NM LIKE '%' || #{searchKeyword} || '%'
+                  </if>
+                  <if test="wdtbAt != null and wdtbAt != ''">AND
+                      A.WDTB_AT = #{wdtbAt}
+                  </if>
+                  <if test="jobSeCode != null and jobSeCode != ''">AND
+                      C.JOB_SE_CODE = #{jobSeCode}
+                  </if>
+
+                    ORDER BY A.LAST_UPDT_PNTTM DESC, A.FRST_REGIST_PNTTM DESC, A.BATCH_DLBRT_NO, A.JOB_DLBRT_NO
+                  ) A
+              WHERE ROWNUM &lt;= #{firstIndex} + #{recordCountPerPage}
+            ) A
+        WHERE RN BETWEEN #{firstIndex} AND #{firstIndex} + #{recordCountPerPage}
+
+    </select>
+
+    <select id="selectBatchWdtbListTotCnt" parameterType="egovframework.bopr.sim.service.BatchWdtbVO" resultType="int">
+
+        SELECT COUNT(1) as TOT_CNT
+        FROM
+            TN_BATCH_DLBRT A
+          , TN_BATCH_DLBRT_RESULT B
+          , TN_JOB_DLBRT C
+        WHERE 1 = 1
+          AND A.JOB_DLBRT_NO = B.JOB_DLBRT_NO
+          AND A.BATCH_DLBRT_NO = B.BATCH_DLBRT_NO
+          AND B.BATCH_DLBRT_RESULT_NO = ( SELECT MAX(S.BATCH_DLBRT_RESULT_NO)
+                                            FROM TN_BATCH_DLBRT_RESULT S
+                                           WHERE S.JOB_DLBRT_NO = A.JOB_DLBRT_NO
+                                             AND S.BATCH_DLBRT_NO = A.BATCH_DLBRT_NO )
+          AND B.BATCH_DLBRT_RESULT_CODE = 'CN'
+          AND A.JOB_DLBRT_NO = C.JOB_DLBRT_NO
+
+        <if test="searchCondition == &quot;A&quot;">AND
+          A.JOB_DLBRT_NO LIKE '%' || #{searchKeyword} || '%'
+        </if>
+        <if test="searchCondition == &quot;B&quot;">AND
+          A.BATCH_DLBRT_NO LIKE '%' || #{searchKeyword} || '%'
+        </if>
+        <if test="searchCondition == &quot;C&quot;">AND
+          A.BATCH_ID LIKE '%' || #{searchKeyword} || '%'
+        </if>
+        <if test="searchCondition == &quot;D&quot;">AND
+          A.BATCH_NM LIKE '%' || #{searchKeyword} || '%'
+        </if>
+        <if test="wdtbAt != null and wdtbAt != ''">AND
+            A.WDTB_AT = #{wdtbAt}
+        </if>
+        <if test="jobSeCode != null and jobSeCode != ''">AND
+            C.JOB_SE_CODE = #{jobSeCode}
+        </if>
+    </select>
+
+    <select id="selectBatchWdtb" parameterType="egovframework.bopr.sim.service.BatchWdtbVO" resultMap="batchWdtb">
+
+        SELECT
+            A.JOB_DLBRT_NO
+          , ( SELECT S.CODE_NM
+                FROM TC_CMMNDETAILCODE S
+               WHERE S.CODE_ID = 'BO001'
+                 AND S.CODE = A.JOB_SE_CODE ) as JOB_SE_CODE_NM
+          , A.JOB_SE_CODE
+          , A.JOB_DLBRT_NM
+          , A.JOB_DLBRT_CN
+          , C.BATCH_DLBRT_NO
+          , C.BATCH_ID
+          , C.BATCH_NM
+          , C.BATCH_DC
+          , ( SELECT S.CODE_NM
+              FROM TC_CMMNDETAILCODE S
+              WHERE S.CODE_ID = 'BO013'
+                AND S.CODE =  NVL(C.TEST_AT, 'N') ) as TEST_AT
+          , NVL(C.WDTB_AT, 'N') as WDTB_AT
+          , ( SELECT S.CODE_NM
+              FROM TC_CMMNDETAILCODE S
+              WHERE S.CODE_ID = 'BO012'
+                AND S.CODE = NVL(C.WDTB_AT, 'N') ) as WDTB_AT_NM
+          , C.PROCESS_SE_CODE
+          , ( SELECT S.CODE_NM
+              FROM TC_CMMNDETAILCODE S
+              WHERE S.CODE_ID = 'BO011'
+                AND S.CODE = C.PROCESS_SE_CODE ) as PROCESS_SE_CODE_NM
+        FROM
+            TN_JOB_DLBRT A
+          , TN_JOB_DLBRT_RESULT B
+          , TN_BATCH_DLBRT C
+          , TN_BATCH_DLBRT_RESULT D
+        WHERE A.JOB_DLBRT_NO = B.JOB_DLBRT_NO
+          AND A.JOB_DLBRT_NO = C.JOB_DLBRT_NO
+          AND C.JOB_DLBRT_NO = D.JOB_DLBRT_NO
+          AND C.BATCH_DLBRT_NO = D.BATCH_DLBRT_NO
+          AND B.JOB_DLBRT_RESULT_NO = ( SELECT MAX(S.JOB_DLBRT_RESULT_NO)
+                                          FROM TN_JOB_DLBRT_RESULT S
+                                         WHERE S.JOB_DLBRT_NO = A.JOB_DLBRT_NO )
+          AND B.JOB_DLBRT_RESULT_CODE = 'CN'
+          AND D.BATCH_DLBRT_RESULT_NO = ( SELECT MAX(S.BATCH_DLBRT_RESULT_NO)
+                                            FROM TN_BATCH_DLBRT_RESULT S
+                                           WHERE S.JOB_DLBRT_NO = C.JOB_DLBRT_NO
+                                             AND S.BATCH_DLBRT_NO = C.BATCH_DLBRT_NO )
+          AND D.BATCH_DLBRT_RESULT_CODE = 'CN'
+          AND A.JOB_DLBRT_NO = #{jobDlbrtNo}
+          AND C.BATCH_DLBRT_NO = #{batchDlbrtNo}
+                     
+    </select>
+
+	<update id="updateBatchWdtb" parameterType="egovframework.bopr.sim.service.BatchWdtbVO">
+ 	
+    UPDATE TN_BATCH_DLBRT
+    SET
+        WDTB_AT = #{wdtbAt}
+      , LAST_UPDUSR_ID = #{lastUpdusrId}
+      , LAST_UPDT_PNTTM = SYSDATE
+    WHERE JOB_DLBRT_NO = #{jobDlbrtNo}
+      AND BATCH_DLBRT_NO = #{batchDlbrtNo}
+ 	
+ 	</update>
+ 	
+ 	<select id="selectBatchWdtbAtchFileList" parameterType="egovframework.bopr.sim.service.BatchWdtbVO" resultMap="atchFile">
+ 	
+ 	SELECT
+ 	    A.ATCH_FILE_ID
+ 	  , A.ATCH_SE_CODE
+ 	  , A.WDTB_PATH
+ 	  , A.PROCESS_SE_CODE
+ 	FROM
+ 	    TN_BATCH_DLBRT_ATCH_FILE A
+ 	WHERE A.JOB_DLBRT_NO = #{jobDlbrtNo}
+ 	  AND A.BATCH_DLBRT_NO = #{batchDlbrtNo}
+ 	
+ 	</select>
+ 	
+ 	<select id="selectBatchWdtbAtchFile" parameterType="egovframework.bopr.sim.service.BatchAtchFileVO" resultMap="atchFile">
+ 	
+ 	SELECT
+ 	    A.ATCH_FILE_ID
+ 	  , A.ATCH_SE_CODE
+ 	  , A.WDTB_PATH
+ 	  , A.PROCESS_SE_CODE
+ 	FROM
+ 	    TN_BATCH_DLBRT_ATCH_FILE A
+ 	WHERE A.JOB_DLBRT_NO = #{jobDlbrtNo}
+ 	  AND A.BATCH_DLBRT_NO = #{batchDlbrtNo}
+ 	  AND A.ATCH_FILE_ID = #{atchFileId}
+ 	
+ 	</select>
+ 	
+ 	<update id="updateBatchWdtbAtchFilePath" parameterType="egovframework.bopr.sim.service.BatchAtchFileVO">
+
+	UPDATE TN_BATCH_DLBRT_ATCH_FILE
+	SET WDTB_PATH = #{wdtbPath}
+	WHERE 1 = 1
+	  AND JOB_DLBRT_NO = #{jobDlbrtNo}
+	  AND BATCH_DLBRT_NO = #{batchDlbrtNo}
+	  AND ATCH_FILE_ID = #{atchFileId}
+
+	</update>
+</mapper>

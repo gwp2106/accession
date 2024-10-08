@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:58 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="RehndnDAO">
+
+    <resultMap id="rehndnList" type="egovframework.bopr.mom.service.RehndnVO">
+        <result property="rehndnNo" column="REHNDN_NO"/>
+        <result property="jobInstanceId" column="JOB_INSTANCE_ID"/>
+        <result property="jobName" column="JOB_NAME"/>
+        <result property="rehndnResn" column="REHNDN_RESN"/>
+        <result property="rehndnPnttm" column="REHNDN_PNTTM"/>
+        <result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+        <result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+        <result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+        <result property="batchId" column="BATCH_ID"/>
+        <result property="batchNm" column="BATCH_NM"/>
+        <result property="exitCode" column="EXIT_CODE"/>
+        <result property="status" column="STATUS"/>
+    </resultMap>
+
+    <resultMap id="rehndnRegistData" type="egovframework.bopr.mom.service.RehndnVO">
+    	<result property="jobInstanceId" column="JOB_INSTANCE_ID"/>
+    	<result property="batchId" column="BATCH_ID"/>
+    	<result property="batchNm" column="BATCH_NM"/>
+    </resultMap>
+
+    <select id="selectRehndnList" parameterType="egovframework.bopr.mom.service.RehndnVO" resultMap="rehndnList">
+        
+SELECT  E.* 
+              FROM  (
+            SELECT ALL_LIST.* , rownum rn
+              FROM  (
+				SELECT
+				    A.REHNDN_NO
+				  , A.JOB_INSTANCE_ID
+				  , C.JOB_NAME
+				  , A.REHNDN_RESN
+				  , A.REHNDN_PNTTM
+				  , A.FRST_REGISTER_ID
+				  , A.FRST_REGIST_PNTTM
+				  , A.LAST_UPDUSR_ID
+				  , A.LAST_UPDT_PNTTM
+				  , A.BATCH_ID
+				  , B.BATCH_NM
+				  , D.EXIT_CODE
+          		  , D.STATUS
+				FROM
+				    TN_REHNDN A
+				    LEFT OUTER JOIN BATCH_JOB_EXECUTION D
+          			ON D.JOB_EXECUTION_ID = A.JOB_EXECUTION_ID
+				  , TN_BATCH B
+				  , BATCH_JOB_INSTANCE C
+				WHERE A.BATCH_ID = B.BATCH_ID
+				  AND A.JOB_INSTANCE_ID = C.JOB_INSTANCE_ID
+	        
+	        <if test="searchCondition == 1">AND
+	             A.REHNDN_NO LIKE ('%'||#{searchKeyword}||'%')
+	        </if>
+	        <if test="searchCondition == 2">AND
+	             A.BATCH_ID LIKE ('%'||#{searchKeyword}||'%')
+	        </if>
+	        <if test="searchCondition == 3">AND
+	             B.BATCH_NM LIKE ('%'||#{searchKeyword}||'%')
+	        </if>
+	        <if test="searchCondition == 4">AND
+	             A.JOB_INSTANCE_ID LIKE ('%'||#{searchKeyword}||'%')
+	        </if>
+	        <if test="searchResultCode != null and searchResultCode != ''">AND
+	        	D.EXIT_CODE = #{searchResultCode}
+	        </if>
+	                    
+            ORDER BY A.REHNDN_NO DESC
+                    ) ALL_LIST
+                    ) E
+             WHERE rn BETWEEN #{firstIndex} + 1 AND #{firstIndex} + #{recordCountPerPage}
+        
+    </select>
+
+    <select id="selectRehndn" resultMap="rehndnList">
+        
+SELECT
+    A.REHNDN_NO
+  , A.JOB_INSTANCE_ID
+  , C.JOB_NAME
+  , A.REHNDN_RESN
+  , A.REHNDN_PNTTM
+  , A.FRST_REGISTER_ID
+  , A.FRST_REGIST_PNTTM
+  , A.LAST_UPDUSR_ID
+  , A.LAST_UPDT_PNTTM
+  , A.BATCH_ID
+  , B.BATCH_NM
+  , D.EXIT_CODE
+  , D.STATUS
+FROM
+    TN_REHNDN A
+    LEFT OUTER JOIN BATCH_JOB_EXECUTION D
+	ON D.JOB_EXECUTION_ID = A.JOB_EXECUTION_ID
+  , TN_BATCH B
+  , BATCH_JOB_INSTANCE C
+WHERE A.BATCH_ID = B.BATCH_ID
+  AND A.REHNDN_NO = #{rehndnNo}
+  AND A.JOB_INSTANCE_ID = C.JOB_INSTANCE_ID
+        
+    </select>
+
+    <select id="selectRehndnRegistData" parameterType="egovframework.bopr.mom.service.RehndnVO" resultMap="rehndnRegistData">
+        
+SELECT A.BATCH_ID
+     , A.BATCH_NM
+     , B.JOB_INSTANCE_ID
+  FROM TN_BATCH A
+     , BATCH_JOB_INSTANCE B
+ WHERE A.BATCH_NM = B.JOB_NAME
+   AND B.JOB_INSTANCE_ID = #{jobInstanceId}
+   AND A.DELETE_AT = 'N'
+        
+    </select>
+
+    <insert id="insertRehndn" parameterType="egovframework.bopr.mom.service.RehndnVO">
+INSERT INTO TN_REHNDN
+(
+    REHNDN_NO
+  , JOB_INSTANCE_ID
+  , REHNDN_RESN
+  , REHNDN_PNTTM
+  , FRST_REGISTER_ID
+  , FRST_REGIST_PNTTM
+  , LAST_UPDUSR_ID
+  , LAST_UPDT_PNTTM
+  , BATCH_ID
+  , JOB_EXECUTION_ID
+)
+VALUES
+(
+    #{rehndnNo}
+  , #{jobInstanceId}
+  , #{rehndnResn}
+  , SYSDATE
+  , #{frstRegisterId}
+  , SYSDATE
+  , #{lastUpdusrId}
+  , SYSDATE
+  , #{batchId}
+  , #{jobExecutionId}
+)
+    </insert>
+
+    <update id="updateRehndn" parameterType="egovframework.bopr.mom.service.RehndnVO">
+UPDATE TN_REHNDN
+SET
+    REHNDN_RESN = #{rehndnResn}
+WHERE REHNDN_NO = #{rehndnNo}
+    </update>
+
+    <delete id="deleteRehndn" parameterType="egovframework.bopr.mom.service.RehndnVO">
+DELETE FROM TN_REHNDN
+WHERE REHNDN_NO = #{rehndnNo}
+    </delete>
+
+    <delete id="deleteRehndnByBatchId" parameterType="egovframework.bopr.mom.service.RehndnVO">
+DELETE FROM TN_REHNDN
+WHERE BATCH_ID = #{batchId}
+    </delete>
+
+    <select id="selectRehndnListTotCnt" parameterType="egovframework.bopr.mom.service.RehndnVO" resultType="int">
+SELECT COUNT(*) totcnt
+  FROM TN_REHNDN A
+	    LEFT OUTER JOIN BATCH_JOB_EXECUTION D
+       			ON D.JOB_EXECUTION_ID = A.JOB_EXECUTION_ID
+	  , TN_BATCH B
+	  , BATCH_JOB_INSTANCE C
+	WHERE A.BATCH_ID = B.BATCH_ID
+	  AND A.JOB_INSTANCE_ID = C.JOB_INSTANCE_ID
+     <if test="searchCondition == 1">AND
+          A.REHNDN_NO LIKE ('%'||#{searchKeyword}||'%')
+     </if>
+     <if test="searchCondition == 2">AND
+          A.BATCH_ID LIKE ('%'||#{searchKeyword}||'%')
+     </if>
+     <if test="searchCondition == 3">AND
+          B.BATCH_NM LIKE ('%'||#{searchKeyword}||'%')
+     </if>
+     <if test="searchCondition == 4">AND
+          A.JOB_INSTANCE_ID LIKE ('%'||#{searchKeyword}||'%')
+     </if>
+     <if test="searchResultCode != null and searchResultCode != ''">AND
+ 	 	  D.EXIT_CODE = #{searchResultCode}
+     </if>
+	</select>
+</mapper>

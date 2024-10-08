@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:57 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="executResultDAO">
+
+<resultMap id="executResult" type="egovframework.bopr.mom.service.ExecutResultVO">
+<result property="jobExecutionId" column="JOB_EXECUTION_ID"/>
+<result property="jobInstanceId" column="JOB_INSTANCE_ID"/>
+<result property="jobName" column="JOB_NAME"/>
+<result property="version" column="VERSION"/>
+<result property="createTime" column="CREATE_TIME"/>
+<result property="startTime" column="START_TIME"/>
+<result property="endTm" column="END_TM"/>
+<result property="sttus" column="STTUS"/>
+<result property="exitCode" column="EXIT_CODE"/>
+<result property="exitMessage" column="EXIT_MESSAGE"/>
+<result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+
+</resultMap>
+
+<select id="selectExecutResultList" parameterType="egovframework.bopr.mom.service.ExecutResultVO" resultMap="executResult">
+
+SELECT  C.* 
+              FROM  (
+            SELECT ALL_LIST.* , rownum rn
+              FROM  (
+			SELECT
+			    A.JOB_EXECUTION_ID             
+			  , A.JOB_INSTANCE_ID
+			  , B.JOB_NAME
+			  , A.VERSION
+			  , TO_CHAR(A.CREATE_TIME,'YYYY-MM-DD HH24:MI:SS') AS CREATE_TIME
+			  , TO_CHAR(A.START_TIME,'YYYY-MM-DD HH24:MI:SS') AS START_TIME
+			  , TO_CHAR(A.END_TIME,'YYYY-MM-DD HH24:MI:SS') AS END_TM
+			  , A.STATUS AS STTUS
+			  , A.EXIT_CODE
+			  , A.EXIT_MESSAGE
+			  , TO_CHAR(A.LAST_UPDATED,'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM
+			FROM
+			    BATCH_JOB_EXECUTION A
+			  , BATCH_JOB_INSTANCE B
+			WHERE A.JOB_INSTANCE_ID = B.JOB_INSTANCE_ID
+        
+        <if test="searchCondition == 1">AND
+                B.JOB_NAME LIKE ('%'||#{searchKeyword}||'%')
+        </if>
+        <if test="searchCondition == 2">AND
+                A.JOB_EXECUTION_ID LIKE ('%'||#{searchKeyword}||'%')
+        </if>
+        <if test="searchResultCode != null and searchResultCode != ''">AND
+        	A.STATUS = #{searchResultCode}
+        </if>
+        
+        <if test='searchKeywordFrom != ""'>
+        		AND END_TIME &gt;= #{searchKeywordFrom}
+        </if>
+        <if test='searchKeywordTo != ""'>
+        		AND END_TIME &lt;= concat(#{searchKeywordTo},' 23:59:59')
+        </if>
+                    
+            ORDER BY END_TM DESC
+
+                    ) ALL_LIST
+                    ) C
+             WHERE rn BETWEEN #{firstIndex} + 1 AND #{firstIndex} + #{recordCountPerPage}
+        
+</select>
+
+<update id="updateExecutResult" parameterType="egovframework.bopr.mom.service.ExecutResult">
+
+            UPDATE BATCH_JOB_EXECUTION
+               SET VERSION = #{version}
+                   , STATUS = #{sttus}
+                   , EXIT_CODE = #{exitCode}
+                   , EXIT_MESSAGE = #{exitMessage}
+                   , LAST_UPDATED = SYSDATETIME
+              WHERE JOB_EXECUTION_ID = #{jobExecutionId}
+        
+</update>
+<delete id="deleteExecutResult">
+
+            DELETE FROM BATCH_JOB_EXECUTION
+             WHERE JOB_EXECUTION_ID = #{jobExecutionId}
+        
+</delete>
+<delete id="deleteExecutResultContext">
+
+            DELETE FROM BATCH_JOB_EXECUTION_CONTEXT
+             WHERE JOB_EXECUTION_ID = #{jobExecutionId}
+        
+</delete>
+<delete id="deleteExecutStepResult">
+
+            DELETE FROM BATCH_STEP_EXECUTION
+             WHERE JOB_EXECUTION_ID = #{jobExecutionId}
+        
+</delete>
+<delete id="deleteExecutStepResultContext">
+
+            DELETE FROM BATCH_STEP_EXECUTION_CONTEXT
+             WHERE STEP_EXECUTION_ID IN (SELECT STEP_EXECUTION_ID
+                                           FROM BATCH_STEP_EXECUTION
+                                          WHERE JOB_EXECUTION_ID = #{jobExecutionId})
+        
+</delete>
+<select id="selectExecutResult" resultMap="executResult">
+
+SELECT
+    A.JOB_EXECUTION_ID             
+  , A.JOB_INSTANCE_ID
+  , B.JOB_NAME
+  , A.VERSION
+  , TO_CHAR(A.CREATE_TIME,'YYYY-MM-DD HH24:MI:SS') AS CREATE_TIME
+  , TO_CHAR(A.START_TIME,'YYYY-MM-DD HH24:MI:SS') AS START_TIME
+  , TO_CHAR(A.END_TIME,'YYYY-MM-DD HH24:MI:SS') AS END_TM
+  , A.STATUS AS STTUS
+  , A.EXIT_CODE
+  , A.EXIT_MESSAGE
+  , TO_CHAR(A.LAST_UPDATED,'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM
+FROM
+    BATCH_JOB_EXECUTION A
+  , BATCH_JOB_INSTANCE B
+WHERE A.JOB_EXECUTION_ID = #{jobExecutionId}
+  AND A.JOB_INSTANCE_ID = B.JOB_INSTANCE_ID
+    
+
+</select>
+<select id="selectExecutResultListTotCnt" parameterType="egovframework.bopr.mom.service.ExecutResultVO" resultType="int">
+SELECT COUNT(*) totcnt
+            FROM BATCH_JOB_EXECUTION A
+               , BATCH_JOB_INSTANCE B
+			WHERE A.JOB_INSTANCE_ID = B.JOB_INSTANCE_ID
+            <if test="searchCondition == 1">AND
+	                B.JOB_NAME LIKE ('%'||#{searchKeyword}||'%')
+	        </if>
+	        <if test="searchCondition == 2">AND
+	                A.JOB_EXECUTION_ID LIKE ('%'||#{searchKeyword}||'%')
+	        </if>
+	        <if test="searchResultCode != null and searchResultCode != ''">AND
+	        	A.STATUS = #{searchResultCode}
+	        </if>
+	        
+	        <if test='searchKeywordFrom != ""'>
+	        		AND END_TIME &gt;= #{searchKeywordFrom}
+	        </if>
+	        <if test='searchKeywordTo != ""'>
+	        		AND END_TIME &lt;= concat(#{searchKeywordTo},' 23:59:59')
+	        </if>
+	        
+</select>
+<select id="selectExecutResultAllList" parameterType="egovframework.bopr.mom.service.ExecutResultVO" resultMap="executResult">
+
+SELECT
+    JOB_EXECUTION_ID             
+  , JOB_INSTANCE_ID
+  , VERSION
+  , CREATE_TIME
+  , START_TIME
+  , END_TIME AS END_TM
+  , STATUS AS STTUS
+  , EXIT_CODE
+  , EXIT_MESSAGE
+  , LAST_UPDATED AS LAST_UPDT_PNTTM
+FROM
+    BATCH_JOB_EXECUTION
+WHERE 1 = 1
+        
+</select>
+</mapper>

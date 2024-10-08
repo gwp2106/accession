@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:54 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="batchDlbrtDAO">
+
+<resultMap id="batchDlbrt" type="egovframework.bopr.bam.service.BatchDlbrtVO">
+<result property="jobDlbrtNo" column="JOB_DLBRT_NO"/>
+<result property="jobDlbrtNm" column="JOB_DLBRT_NM"/>
+<result property="batchDlbrtNo" column="BATCH_DLBRT_NO"/>
+<result property="batchId" column="BATCH_ID"/>
+<result property="batchNm" column="BATCH_NM"/>
+<result property="batchDc" column="BATCH_DC"/>
+<result property="testAt" column="TEST_AT"/>
+<result property="wdtbAt" column="WDTB_AT"/>
+<result property="processSeCode" column="PROCESS_SE_CODE"/>
+<result property="batchDlbrtResultCode" column="BATCH_DLBRT_RESULT_CODE"/>
+<result property="batchDlbrtResultCodeNm" column="BATCH_DLBRT_RESULT_CODE_NM"/>
+<result property="batchDlbrtCn" column="BATCH_DLBRT_CN"/>
+<result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+<result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+<result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+<result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+</resultMap>
+
+<resultMap id="batchDlbrtAtch" type="egovframework.bopr.bam.service.BatchDlbrtVO">
+<result property="jobDlbrtNo" column="JOB_DLBRT_NO"/>
+<result property="batchDlbrtNo" column="BATCH_DLBRT_NO"/>
+<result property="atchFileId" column="ATCH_FILE_ID"/>
+<result property="atchSeCode" column="ATCH_SE_CODE"/>
+<result property="batchPath" column="BATCH_PATH"/>
+<result property="atchProcessSeCode" column="ATCH_PROCESS_SE_CODE"/>
+<result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+<result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+<result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+<result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+</resultMap>
+
+<resultMap id="batchDlbrtPopup" type="egovframework.bopr.bam.service.BatchDlbrtVO">
+<result property="jobDlbrtNo" column="JOB_DLBRT_NO"/>
+<result property="jobDlbrtNm" column="JOB_DLBRT_NM"/>
+<result property="batchId" column="BATCH_ID"/>
+<result property="batchNm" column="BATCH_NM"/>
+</resultMap>
+
+<resultMap id="batchPopup" type="egovframework.bopr.bam.service.BatchDlbrtVO">
+<result property="jobDlbrtNo" column="JOB_DLBRT_NO"/>
+<result property="jobDlbrtNm" column="JOB_DLBRT_NM"/>
+<result property="batchId" column="BATCH_ID"/>
+<result property="batchNm" column="BATCH_NM"/>
+</resultMap>
+
+<select id="selectBatchDlbrtList" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultMap="batchDlbrt">
+
+SELECT  C.* 
+              FROM  (
+            SELECT ALL_LIST.* , rownum rn
+              FROM  (
+			SELECT
+				    A.JOB_DLBRT_NO         
+				  , D.JOB_DLBRT_NM    
+		          , A.BATCH_DLBRT_NO
+		          , A.BATCH_ID
+		          , A.BATCH_NM
+		          , A.BATCH_DC
+		          , A.TEST_AT
+		          , A.WDTB_AT
+		          , A.PROCESS_SE_CODE
+		          , B.BATCH_DLBRT_RESULT_CODE
+                  , C.CODE_NM AS BATCH_DLBRT_RESULT_CODE_NM
+		          , B.BATCH_DLBRT_CN
+		          , A.FRST_REGISTER_ID
+		          , TO_CHAR(A.FRST_REGIST_PNTTM,'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM
+		          , A.LAST_UPDUSR_ID
+		          , TO_CHAR(A.LAST_UPDT_PNTTM,'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM
+				FROM
+				    TN_BATCH_DLBRT A
+				  LEFT OUTER JOIN (SELECT BATCH_DLBRT_NO
+				                        , BATCH_DLBRT_RESULT_CODE
+				                        , BATCH_DLBRT_CN
+				                     FROM TN_BATCH_DLBRT_RESULT
+				                    WHERE BATCH_DLBRT_RESULT_NO IN (SELECT MAX(A.BATCH_DLBRT_RESULT_NO) 
+				                                                   FROM TN_BATCH_DLBRT_RESULT A
+				                                                      , TN_BATCH_DLBRT B
+				                                                  WHERE B.BATCH_DLBRT_NO = A.BATCH_DLBRT_NO
+				                                                  GROUP BY A.BATCH_DLBRT_NO)) B
+				   ON A.BATCH_DLBRT_NO = B.BATCH_DLBRT_NO
+		          LEFT OUTER JOIN (SELECT CODE_ID,
+		                                  CODE_NM,
+		                                  CODE
+		                             FROM TC_CMMNDETAILCODE
+		                            WHERE CODE_ID = 'BO003') C
+		           ON B.BATCH_DLBRT_RESULT_CODE = C.CODE
+		         , TN_JOB_DLBRT D
+				WHERE 1=1
+				  AND A.JOB_DLBRT_NO = D.JOB_DLBRT_NO
+        
+        <if test="searchCondition == 1">AND
+                A.BATCH_DLBRT_NO LIKE ('%'||#{searchKeyword}||'%')
+        </if>
+        <if test="searchCondition == 2">AND
+                A.BATCH_NM LIKE ('%'||#{searchKeyword}||'%')
+        </if>
+        <if test="searchResultCode != null and searchResultCode != ''">AND
+        	<if test="searchResultCode == &quot;NU&quot;">
+        		B.BATCH_DLBRT_RESULT_CODE is null
+        	</if>
+        	
+        		B.BATCH_DLBRT_RESULT_CODE = #{searchResultCode}
+        	
+        </if>
+        
+        <if test='searchKeywordFrom != ""'>
+        		AND A.FRST_REGIST_PNTTM &gt;= TO_DATE(#{searchKeywordFrom},'YYYY-MM-DD HH24:MI:SS')
+        </if>		
+        <if test='searchKeywordTo != ""'>
+        		AND A.FRST_REGIST_PNTTM &lt;= TO_DATE(concat(#{searchKeywordTo},' 23:59:59'),'YYYY-MM-DD HH24:MI:SS')
+        </if>
+        
+            ORDER BY BATCH_DLBRT_NO DESC
+
+                    ) ALL_LIST
+                    ) C
+             WHERE rn BETWEEN #{firstIndex} + 1 AND #{firstIndex} + #{recordCountPerPage}
+        
+</select>
+
+<select id="selectBatchDlbrtPopupList" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultMap="batchDlbrtPopup">
+
+SELECT  C.* 
+              FROM  (
+            SELECT ALL_LIST.* , rownum rn
+              FROM  (
+				SELECT A.JOB_DLBRT_NO
+					 , B.JOB_DLBRT_NM
+				     , A.BATCH_NM
+                     , A.BATCH_ID
+				  FROM TN_BATCH A
+				     , TN_JOB_DLBRT B     
+				 WHERE A.JOB_DLBRT_NO = #{jobDlbrtNo}
+				   AND A.JOB_DLBRT_NO = B.JOB_DLBRT_NO
+				   AND A.DELETE_AT = 'N'
+        
+        <if test="searchCondition == 1">AND
+                A.BATCH_ID LIKE ('%'||#{searchKeyword}||'%')
+        </if>
+        <if test="searchCondition == 2">AND
+                A.BATCH_NM LIKE ('%'||#{searchKeyword}||'%')
+        </if>
+                    
+            ORDER BY A.FRST_REGIST_PNTTM DESC
+
+                    ) ALL_LIST
+                    ) C
+             WHERE rn BETWEEN #{firstIndex} + 1 AND #{firstIndex} + #{recordCountPerPage}
+        
+</select>
+
+<select id="selectBatchPopupList" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultMap="batchPopup">
+
+SELECT  C.* 
+              FROM  (
+            SELECT ALL_LIST.* , rownum rn
+              FROM  (
+				SELECT A.JOB_DLBRT_NO
+				     , B.CODE_NM AS JOB_DLBRT_NM
+				     , A.BATCH_NM
+                     , A.BATCH_ID
+				  FROM TN_BATCH A
+				     LEFT OUTER JOIN (SELECT CODE_ID,
+		                                  CODE_NM,
+		                                  CODE
+		                             FROM TC_CMMNDETAILCODE
+		                            WHERE CODE_ID = 'BO001') B
+		            ON A.JOB_SE_CODE = B.CODE   
+				 WHERE 1=1
+        
+        <if test="searchCondition == 1">AND
+                A.BATCH_ID LIKE ('%'||#{searchKeyword}||'%')
+        </if>
+        <if test="searchCondition == 2">AND
+                A.BATCH_NM LIKE ('%'||#{searchKeyword}||'%')
+        </if>
+        <if test="searchSeCode != null and searchSeCode != ''">AND
+       			A.JOB_SE_CODE = #{searchSeCode}
+        </if>
+                    
+            ORDER BY A.BATCH_ID DESC
+
+                    ) ALL_LIST
+                    ) C
+             WHERE rn BETWEEN #{firstIndex} + 1 AND #{firstIndex} + #{recordCountPerPage}
+        
+</select>
+
+<insert id="insertBatchDlbrt" parameterType="egovframework.bopr.bam.service.BatchDlbrt">
+
+            INSERT INTO TN_BATCH_DLBRT
+                  ( JOB_DLBRT_NO
+                  , BATCH_DLBRT_NO
+				  , BATCH_ID
+				  , BATCH_NM
+				  , BATCH_DC
+				  , TEST_AT
+				  , WDTB_AT
+				  , PROCESS_SE_CODE
+				  , FRST_REGISTER_ID
+				  , FRST_REGIST_PNTTM
+				  , LAST_UPDUSR_ID
+				  , LAST_UPDT_PNTTM)
+           VALUES ( #{jobDlbrtNo}
+                  , #{batchDlbrtNo}
+                  , #{batchId}
+                  , #{batchNm}
+                  , #{batchDc}
+                  , 'N'
+                  , 'N'
+                  , #{processSeCode}
+                  , #{frstRegisterId}
+                  , SYSDATE
+                  , #{lastUpdusrId}
+                  , SYSDATE)
+        
+</insert>
+
+<insert id="insertBatchDlbrtAtch" parameterType="egovframework.bopr.bam.service.BatchDlbrt">
+
+            INSERT INTO TN_BATCH_DLBRT_ATCH_FILE
+                  ( JOB_DLBRT_NO
+                  , BATCH_DLBRT_NO
+				  , ATCH_FILE_ID
+				  , ATCH_SE_CODE
+				  , WDTB_PATH
+				  , PROCESS_SE_CODE
+				  , FRST_REGISTER_ID
+				  , FRST_REGIST_PNTTM
+				  , LAST_UPDUSR_ID
+				  , LAST_UPDT_PNTTM)
+           VALUES ( #{jobDlbrtNo}
+                  , #{batchDlbrtNo}
+                  , #{atchFileId}
+                  , #{atchSeCode}
+                  , #{batchPath}
+                  , #{atchProcessSeCode}
+                  , #{frstRegisterId}
+                  , SYSDATE
+                  , #{lastUpdusrId}
+                  , SYSDATE)
+        
+</insert>
+<insert id="insertBatchBean" parameterType="egovframework.bopr.bam.service.BatchDlbrt">
+
+            INSERT INTO TN_BATCH_BEAN
+                  ( BEAN_ID
+                  , BATCH_ID )
+           VALUES ( #{beanId}
+                  , #{batchId} )
+        
+</insert>
+<delete id="deleteBatchBean" parameterType="egovframework.bopr.bam.service.BatchDlbrt">
+
+            DELETE FROM TN_BATCH_BEAN
+             WHERE BEAN_ID = #{beanId}
+        
+</delete>
+<update id="updateBatchDlbrt" parameterType="egovframework.bopr.bam.service.BatchDlbrt">
+
+            UPDATE TN_BATCH_DLBRT
+               SET   JOB_DLBRT_NO = #{jobDlbrtNo}
+                   , BATCH_ID = #{batchId}
+                   , BATCH_NM = #{batchNm}
+                   , BATCH_DC = #{batchDc}
+                   , LAST_UPDUSR_ID = #{lastUpdusrId}
+                   , LAST_UPDT_PNTTM = SYSDATE
+              WHERE BATCH_DLBRT_NO = #{batchDlbrtNo}
+        
+</update>
+
+<update id="updateBatchDlbrtAtch" parameterType="egovframework.bopr.bam.service.BatchDlbrt">
+
+            UPDATE TN_BATCH_DLBRT_ATCH_FILE
+               SET ATCH_SE_CODE = #{atchSeCode}
+                   , WDTB_PATH = #{batchPath}
+                   , PROCESS_SE_CODE = #{atchProcessSeCode}
+                   , LAST_UPDUSR_ID = #{lastUpdusrId}
+                   , LAST_UPDT_PNTTM = SYSDATE
+              WHERE ATCH_FILE_ID = #{atchFileId}
+        
+</update>
+
+<delete id="deleteBatchDlbrt">
+
+            DELETE FROM TN_BATCH_DLBRT
+             WHERE BATCH_DLBRT_NO = #{batchDlbrtNo}
+        
+</delete>
+
+<delete id="deleteBatchDlbrtAtch">
+
+            DELETE FROM TN_BATCH_DLBRT_ATCH_FILE
+             WHERE ATCH_FILE_ID = #{atchFileId}
+        
+</delete>
+
+<delete id="deleteBatchDlbrtAtchByNo">
+
+            DELETE FROM TN_BATCH_DLBRT_ATCH_FILE
+             WHERE BATCH_DLBRT_NO = #{batchDlbrtNo}
+        
+</delete>
+
+<select id="selectBatchDlbrt" resultMap="batchDlbrt">
+
+SELECT
+    A.JOB_DLBRT_NO
+  , D.JOB_DLBRT_NM
+  , A.BATCH_DLBRT_NO
+  , A.BATCH_ID
+  , A.BATCH_NM
+  , A.BATCH_DC
+  , A.TEST_AT
+  , A.WDTB_AT
+  , A.PROCESS_SE_CODE
+  , B.BATCH_DLBRT_RESULT_CODE
+  , C.CODE_NM AS BATCH_DLBRT_RESULT_CODE_NM
+  , B.BATCH_DLBRT_CN
+  , A.FRST_REGISTER_ID
+  , TO_CHAR(A.FRST_REGIST_PNTTM,'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM
+  , A.LAST_UPDUSR_ID
+  , TO_CHAR(A.LAST_UPDT_PNTTM,'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM
+  FROM
+TN_BATCH_DLBRT A
+  LEFT OUTER JOIN (SELECT BATCH_DLBRT_NO
+                        , BATCH_DLBRT_RESULT_CODE
+                        , BATCH_DLBRT_CN
+                     FROM TN_BATCH_DLBRT_RESULT
+                    WHERE BATCH_DLBRT_RESULT_NO = (SELECT MAX(BATCH_DLBRT_RESULT_NO) 
+                                                   FROM TN_BATCH_DLBRT_RESULT 
+                                                  WHERE BATCH_DLBRT_NO = #{batchDlbrtNo})) B
+   ON A.BATCH_DLBRT_NO = B.BATCH_DLBRT_NO
+  LEFT OUTER JOIN (SELECT CODE_ID
+                        , CODE_NM
+                        , CODE
+                     FROM TC_CMMNDETAILCODE
+                    WHERE CODE_ID = 'BO003') C
+  ON B.BATCH_DLBRT_RESULT_CODE = C.CODE
+  , TN_JOB_DLBRT D
+WHERE A.JOB_DLBRT_NO = D.JOB_DLBRT_NO
+  AND A.BATCH_DLBRT_NO = #{batchDlbrtNo}
+        
+</select>
+
+<select id="selectBatchDlbrtAtch" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultMap="batchDlbrtAtch">
+
+SELECT
+    JOB_DLBRT_NO
+  , BATCH_DLBRT_NO
+  , ATCH_FILE_ID
+  , ATCH_SE_CODE
+  , WDTB_PATH AS BATCH_PATH
+  , PROCESS_SE_CODE AS ATCH_PROCESS_SE_CODE
+  , FRST_REGISTER_ID
+  , FRST_REGIST_PNTTM
+  , LAST_UPDUSR_ID
+  , LAST_UPDT_PNTTM
+FROM
+    TN_BATCH_DLBRT_ATCH_FILE
+WHERE BATCH_DLBRT_NO = #{batchDlbrtNo}
+        
+</select>
+
+<select id="selectBatchDlbrtListTotCnt" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultType="int">
+SELECT COUNT(*) totcnt
+            FROM TN_BATCH_DLBRT A
+            	 LEFT OUTER JOIN (SELECT BATCH_DLBRT_NO
+				                        , BATCH_DLBRT_RESULT_CODE
+				                        , BATCH_DLBRT_CN
+				                     FROM TN_BATCH_DLBRT_RESULT
+				                    WHERE BATCH_DLBRT_RESULT_NO IN (SELECT MAX(A.BATCH_DLBRT_RESULT_NO) 
+				                                                   FROM TN_BATCH_DLBRT_RESULT A
+				                                                      , TN_BATCH_DLBRT B
+				                                                  WHERE B.BATCH_DLBRT_NO = A.BATCH_DLBRT_NO
+				                                                  GROUP BY A.BATCH_DLBRT_NO)) B
+				   ON A.BATCH_DLBRT_NO = B.BATCH_DLBRT_NO
+            WHERE 1=1
+            <if test="searchCondition == 1">AND
+                A.BATCH_DLBRT_NO LIKE ('%'||#{searchKeyword}||'%')
+            </if>
+            <if test="searchCondition == 2">AND
+                A.BATCH_NM LIKE ('%'||#{searchKeyword}||'%')
+            </if>
+            <if test="searchResultCode != null and searchResultCode != ''">AND
+	        	<if test="searchResultCode == &quot;NU&quot;">
+	        		B.BATCH_DLBRT_RESULT_CODE is null
+	        	</if>
+	        	
+	        		B.BATCH_DLBRT_RESULT_CODE = #{searchResultCode}
+	        	
+	        </if>
+             
+	        <if test='searchKeywordFrom != ""'>
+	        	AND A.FRST_REGIST_PNTTM &gt;= TO_DATE(#{searchKeywordFrom},'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+	        <if test='searchKeywordTo != ""'>
+	        	AND A.FRST_REGIST_PNTTM &lt;= TO_DATE(concat(#{searchKeywordTo},' 23:59:59'),'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+	        
+</select>
+<select id="selectBatchDlbrtPopupListTotCnt" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultType="int">
+SELECT COUNT(*) totcnt
+				  FROM TN_BATCH A     
+				 WHERE A.JOB_DLBRT_NO = #{jobDlbrtNo}
+            <if test="searchCondition == 1">AND
+                A.BATCH_ID LIKE concat('%',#{searchKeyword},'%')
+            </if>
+            <if test="searchCondition == 2">AND
+                A.BATCH_NM LIKE concat('%',#{searchKeyword},'%')
+            </if>
+</select>
+<select id="selectBatchPopupListTotCnt" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultType="int">
+SELECT COUNT(*) totcnt
+				  FROM TN_BATCH A     
+				 WHERE 1=1
+            <if test="searchCondition == 1">AND
+                A.BATCH_ID LIKE ('%'||#{searchKeyword}||'%')
+            </if>
+            <if test="searchCondition == 2">AND
+                A.BATCH_NM LIKE ('%'||#{searchKeyword}||'%')
+            </if>
+            <if test="searchSeCode != null and searchSeCode != ''">AND
+       			A.JOB_SE_CODE = #{searchSeCode}
+        </if>
+</select>
+<select id="selectBatchBeanTotCnt" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultType="int">
+SELECT COUNT(*) totcnt
+				  FROM TN_BATCH_BEAN     
+				 WHERE BEAN_ID = #{beanId}
+</select>
+<select id="selectBatchDlbrtAllList" parameterType="egovframework.bopr.bam.service.BatchDlbrtVO" resultMap="batchDlbrt">
+
+SELECT
+    JOB_DLBRT_NO
+  , BATCH_DLBRT_NO
+  , BATCH_ID
+  , BATCH_NM
+  , BATCH_DC
+  , TEST_AT
+  , WDTB_AT
+  , PROCESS_SE_CODE
+  , FRST_REGISTER_ID
+  , FRST_REGIST_PNTTM
+  , LAST_UPDUSR_ID
+  , LAST_UPDT_PNTTM
+FROM
+    TN_BATCH_DLBRT
+WHERE 1 = 1
+        
+</select>
+</mapper>

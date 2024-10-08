@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:58 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jobKnwldgManageDAO">
+
+	<resultMap id="jobKnwldg" type="egovframework.bopr.ikm.service.JobKnwldgManageVO">
+        <result property="knwldgNo" column="KNWLDG_NO"/>
+        <result property="knwldgNm" column="KNWLDG_NM"/>
+        <result property="knwldgCn" column="KNWLDG_CN"/>
+        <result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+        <result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+        <result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+        <result property="atchFileId" column="ATCH_FILE_ID"/>
+        <result property="othbcAt" column="OTHBC_AT"/>
+        <result property="knwldgTyCode" column="KNWLDG_TY_CODE"/>
+        <result property="knwldgEvl" column="KNWLDG_EVL"/>
+        <result property="dsuseEnnc" column="DSUSE_ENNC"/>
+        <result property="dsuseDe" column="DSUSE_DE"/>
+        <result property="rdcnt" column="RDCNT"/>        
+    </resultMap>
+
+    <resultMap id="jobKnwldgList" type="egovframework.bopr.ikm.service.JobKnwldgManageVO">
+        <result property="knwldgNo" column="KNWLDG_NO"/>
+        <result property="knwldgNm" column="KNWLDG_NM"/>
+        <result property="knwldgCn" column="KNWLDG_CN"/>
+        <result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+        <result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+        <result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+        <result property="atchFileId" column="ATCH_FILE_ID"/>
+        <result property="othbcAt" column="OTHBC_AT"/>
+        <result property="knwldgTyCode" column="KNWLDG_TY_CODE"/>
+        <result property="dsuseEnnc" column="DSUSE_ENNC"/>
+        <result property="dsuseDe" column="DSUSE_DE"/>
+        <result property="rdcnt" column="RDCNT"/>        
+    </resultMap>
+
+    <select id="selectJobKnwldgList" parameterType="egovframework.bopr.ikm.service.JobKnwldgManageVO" resultMap="jobKnwldgList">
+        
+            SELECT  * 
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.* 
+              FROM(
+
+            SELECT
+                   KNWLDG_NO
+            	 , KNWLDG_TY_CODE
+            	 , KNWLDG_NM
+            	 , KNWLDG_CN
+            	 , ATCH_FILE_ID
+            	 , OTHBC_AT
+            	 , DSUSE_ENNC
+            	 , DSUSE_DE
+            	 , FRST_REGISTER_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM   
+            	 , LAST_UPDUSR_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM  
+            	 , RDCNT
+              FROM TN_KNWLDG
+             WHERE 1=1
+                      
+            <if test="searchCondition == 1">AND
+                KNWLDG_NM LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 2">AND
+            	KNWLDG_CN LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 2">AND
+            	FRST_REGISTER_ID LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="adminYn == &quot;N&quot;">AND
+        		(OTHBC_AT = 'Y' OR (OTHBC_AT = 'N' AND FRST_REGISTER_ID = #{loginId}))
+        	</if>
+            
+	        <if test='searchKeywordFrom != ""'>
+	        		AND FRST_REGIST_PNTTM &gt;= TO_DATE(#{searchKeywordFrom},'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+	        <if test='searchKeywordTo != ""'>
+	        		AND FRST_REGIST_PNTTM &lt;= TO_DATE(concat(#{searchKeywordTo},' 23:59:59'),'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+                    
+            ORDER BY LAST_UPDT_PNTTM DESC
+
+                    ) ALL_LIST
+                    ) T
+             WHERE  RNUM  &gt; #{firstIndex}
+               AND  RNUM &lt;= #{firstIndex} + #{recordCountPerPage}
+                         
+    </select>
+ 
+    <insert id="insertJobKnwldg" parameterType="egovframework.bopr.ikm.service.JobKnwldgManage">
+        
+            INSERT INTO TN_KNWLDG 
+                  ( KNWLDG_NO
+            	  , KNWLDG_TY_CODE
+            	  , KNWLDG_NM
+            	  , KNWLDG_CN
+            	  , ATCH_FILE_ID
+            	  , OTHBC_AT
+            	  , DSUSE_ENNC
+            	  , DSUSE_DE
+            	  , FRST_REGISTER_ID
+            	  , FRST_REGIST_PNTTM
+            	  , LAST_UPDUSR_ID
+            	  , LAST_UPDT_PNTTM
+            	  , RDCNT)
+           VALUES ( #{knwldgNo}
+                  , #{knwldgTyCode}
+                  , #{knwldgNm}
+                  , #{knwldgCn}
+                  , #{atchFileId}
+                  , #{othbcAt}
+                  , #{dsuseEnnc}
+                  , #{dsuseDe}
+                  , #{frstRegisterId}
+                  , SYSDATETIME
+                  , #{lastUpdusrId}
+                  , SYSDATETIME
+                  , 0)
+          
+    </insert>
+
+    <update id="updateJobKnwldg" parameterType="egovframework.bopr.ikm.service.JobKnwldgManage">
+        
+            UPDATE TN_KNWLDG 
+               SET KNWLDG_TY_CODE=#{knwldgTyCode}
+            	  , KNWLDG_NM=#{knwldgNm}
+            	  , KNWLDG_CN=#{knwldgCn}
+            	  , ATCH_FILE_ID=#{atchFileId}
+            	  , OTHBC_AT=#{othbcAt}
+            	  , DSUSE_ENNC=#{dsuseEnnc}
+            	  , DSUSE_DE=#{dsuseDe}
+            	  , LAST_UPDUSR_ID=#{lastUpdusrId}
+            	  , LAST_UPDT_PNTTM=SYSDATETIME
+             WHERE KNWLDG_NO=#{knwldgNo}
+        
+    </update>
+
+    <update id="deleteJobKnwldg">
+        
+        	UPDATE TN_KNWLDG 
+               SET OTHBC_AT='N'
+             WHERE KNWLDG_NO=#{knwldgNo}
+        
+    </update>
+
+    <select id="selectJobKnwldgListTotCnt" parameterType="egovframework.bopr.ikm.service.JobKnwldgManageVO" resultType="int">
+            SELECT COUNT(*) totcnt
+            FROM TN_KNWLDG
+            WHERE 1=1
+            <if test="searchCondition == 1">AND
+                KNWLDG_NM LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 2">AND
+            	KNWLDG_CN LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 2">AND
+            	FRST_REGISTER_ID LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="adminYn == &quot;N&quot;">AND
+        		(OTHBC_AT = 'Y' OR (OTHBC_AT = 'N' AND FRST_REGISTER_ID = #{loginId}))
+        	</if>
+            
+	        <if test='searchKeywordFrom != ""'>
+	        		AND FRST_REGIST_PNTTM &gt;= TO_DATE(#{searchKeywordFrom},'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+	        <if test='searchKeywordTo != ""'>
+	        		AND FRST_REGIST_PNTTM &lt;= TO_DATE(concat(#{searchKeywordTo},' 23:59:59'),'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+	        
+    </select>
+
+    <select id="selectJobKnwldg" parameterType="egovframework.bopr.ikm.service.JobKnwldgManageVO" resultMap="jobKnwldg">
+        
+            SELECT a.KNWLDG_NO
+            	 , a.KNWLDG_TY_CODE
+            	 , a.KNWLDG_NM
+            	 , a.KNWLDG_CN
+            	 , a.ATCH_FILE_ID
+            	 , a.OTHBC_AT
+            	 , (SELECT ROUND(AVG(b.CMT_KNWLDG_EVL),2) FROM TN_KNWLDG_CMT b WHERE b.NTT_ID = #{knwldgNo}) AS KNWLDG_EVL
+            	 , a.DSUSE_ENNC
+            	 , a.DSUSE_DE
+            	 , a.FRST_REGISTER_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM
+            	 , a.LAST_UPDUSR_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM 
+            	 , a.RDCNT
+              FROM TN_KNWLDG a
+             WHERE a.KNWLDG_NO=#{knwldgNo}
+        
+    </select>
+
+    <update id="addReadCount" parameterType="egovframework.bopr.ikm.service.JobKnwldgManage">
+        
+            UPDATE TN_KNWLDG 
+               SET RDCNT = RDCNT +1
+             WHERE KNWLDG_NO=#{knwldgNo}
+        
+    </update>
+</mapper>

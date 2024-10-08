@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:58 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="userManageDAO">
+
+	<resultMap id="user" type="egovframework.bopr.uam.service.UserManageVO">
+        <result property="userId" column="USER_ID"/>
+        <result property="userNm" column="USER_NM"/>
+        <result property="password" column="PASSWORD"/>
+        <result property="useAt" column="USE_AT"/>
+        <result property="deptId" column="DEPT_ID"/>
+        <result property="moblphonNo" column="MOBLPHON_NO"/>
+        <result property="adres" column="ADRES"/>
+        <result property="emails" column="EMAILS"/>
+        <result property="imageFile" column="IMAGE_FILE"/>
+        <result property="registDe" column="REGIST_DE"/>
+        <result property="jobSeCode" column="JOB_SE_CODE"/>
+        <result property="agreAt" column="AGRE_AT"/>
+    </resultMap>
+
+    <select id="selectUserAllList" parameterType="egovframework.bopr.uam.service.UserManageVO" resultMap="user">
+        
+            SELECT  * 
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.* 
+              FROM(
+
+            SELECT
+                   USER_ID
+            	 , USER_NM
+            	 , PASSWORD
+            	 , USE_AT
+            	 , DEPT_ID
+            	 , MOBLPHON_NO
+            	 , ADRES
+            	 , EMAILS
+            	 , IMAGE_FILE
+            	 , TO_CHAR(REGIST_DE, 'YYYY-MM-DD HH24:MI:SS') AS REGIST_DE
+            	 , JOB_SE_CODE
+            	 , AGRE_AT
+              FROM TN_USERS
+             WHERE 1=1
+                      
+        	<if test="searchCondition == 1">AND
+                USER_ID LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 2">AND
+            	USER_NM LIKE '%' || #{searchKeyword} || '%'
+            </if>
+                    
+            ORDER BY REGIST_DE DESC
+
+                    ) ALL_LIST
+                    ) T
+             WHERE  RNUM  &gt; #{firstIndex}
+               AND  RNUM &lt;= #{firstIndex} + #{recordCountPerPage}
+                         
+    </select>
+ 
+    <insert id="insertUser" parameterType="egovframework.bopr.uam.service.UserManage">
+        
+            INSERT INTO TN_USERS 
+                  ( USER_ID
+            	  , USER_NM
+            	  , PASSWORD
+            	  , USE_AT
+            	  , DEPT_ID
+            	  , MOBLPHON_NO
+            	  , ADRES
+            	  , EMAILS
+            	  , IMAGE_FILE
+            	  , REGIST_DE
+            	  , JOB_SE_CODE
+            	  , AGRE_AT)
+           VALUES ( #{userId}
+                  , #{userNm}
+                  , #{password}
+                  , 'Y'
+                  , #{deptId}
+                  , #{moblphonNo}
+                  , #{adres}
+                  , #{emails}
+                  , #{imageFile}
+                  , SYSDATETIME
+                  , #{jobSeCode}
+                  , 'Y')
+          
+    </insert>
+
+    <update id="updateUser" parameterType="egovframework.bopr.uam.service.UserManage">
+        
+            UPDATE TN_USERS 
+               SET USER_NM=#{userNm}
+                 , USE_AT=#{useAt}
+                 , DEPT_ID=#{deptId}
+            	 , MOBLPHON_NO=#{moblphonNo}
+            	 , ADRES=#{adres}
+            	 , EMAILS=#{emails}
+            	 , IMAGE_FILE=#{imageFile}
+            	 , JOB_SE_CODE=#{jobSeCode}
+             WHERE USER_ID=#{userId}
+        
+    </update>
+
+    <update id="deleteUser">
+        
+             UPDATE TN_USERS 
+               SET USE_AT='N'
+             WHERE USER_ID=#{userId}
+        
+    </update>
+
+    <select id="selectUserListTotCnt" parameterType="egovframework.bopr.uam.service.UserManageVO" resultType="int">
+            SELECT COUNT(*) totcnt
+            FROM TN_USERS
+            WHERE 1=1
+            <if test="searchCondition == 1">AND
+                USER_NM LIKE '%'||#{searchKeyword}||'%'
+            </if>
+    </select>
+
+    <select id="selectUser" parameterType="egovframework.bopr.uam.service.UserManageVO" resultMap="user">
+        
+            SELECT USER_ID
+            	 , USER_NM
+            	 , PASSWORD
+            	 , USE_AT
+            	 , DEPT_ID
+            	 , MOBLPHON_NO
+            	 , ADRES
+            	 , EMAILS
+            	 , IMAGE_FILE
+            	 , TO_CHAR(REGIST_DE, 'YYYY-MM-DD HH24:MI:SS') AS REGIST_DE
+            	 , JOB_SE_CODE
+            	 , AGRE_AT
+              FROM TN_USERS
+             WHERE USER_ID=#{userId}
+        
+        	<if test="searchCondition == 1">AND
+                USER_ID LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 2">AND
+            	USER_NM LIKE '%' || #{searchKeyword} || '%'
+            </if>
+    </select>
+
+    <select id="checkIdDplct_S" resultType="int">
+        
+            SELECT COUNT(1) usedCnt
+                FROM(
+                SELECT
+                    USER_ID             userId
+                FROM    TN_USERS
+                ) A
+            WHERE userId = #{checkId}
+        
+    </select>
+
+    <select id="checkPassword" resultType="int">
+        
+            SELECT COUNT(1) passwordCnt
+                FROM(
+                SELECT
+                    USER_ID             userId
+                   ,PASSWORD             password
+                FROM    TN_USERS
+                ) A
+            WHERE userId = #{userId}
+            	  and password = #{password}
+        
+    </select>
+
+    <update id="updatePassword" parameterType="egovframework.bopr.uam.service.UserManage">
+        
+            UPDATE TN_USERS 
+               SET PASSWORD=#{password}
+             WHERE USER_ID=#{userId}
+        
+    </update>
+
+</mapper>

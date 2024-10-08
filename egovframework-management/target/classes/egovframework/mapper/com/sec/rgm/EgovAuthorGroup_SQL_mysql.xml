@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:55 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="authorGroupDAO">
+
+    <resultMap id="authorGroup" type="egovframework.com.sec.rgm.service.AuthorGroupVO">
+        <result property="userId" column="USER_ID"/>
+        <result property="userNm" column="USER_NM"/>
+        <result property="authorCode" column="AUTHOR_CODE"/>
+        <result property="regYn" column="REG_YN"/>
+    </resultMap>
+
+    <select id="selectAuthorGroupList" parameterType="egovframework.com.sec.rgm.service.AuthorGroupVO" resultMap="authorGroup">
+            SELECT 
+            		A.USER_ID,
+            		A.USER_NM,
+            		B.AUTHOR_CODE,
+            		(CASE WHEN B.SCRTY_DTRMN_TRGET_ID IS NULL THEN 'N'
+                         ELSE 'Y' 
+                     END) AS REG_YN
+            		
+            FROM	
+            	    TN_USERS A LEFT OUTER JOIN TN_EMPLYRSCRTYESTBS B ON A.USER_ID = B.SCRTY_DTRMN_TRGET_ID
+
+            WHERE 
+            		1=1
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchCondition == 1">AND
+                       A.USER_ID LIKE CONCAT('%' , #{searchKeyword}, '%')
+                </if>
+	            <if test="searchCondition == 2">AND
+	                   A.USER_NM LIKE CONCAT('%' , #{searchKeyword}, '%')
+	            </if>
+	            <if test="searchCondition == 3">AND
+	                   A.GROUP_ID = #{searchKeyword}
+	            </if>
+            </if>
+             LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+	<insert id="insertAuthorGroup" parameterType="egovframework.com.sec.rgm.service.AuthorGroup">
+		
+			INSERT INTO TN_EMPLYRSCRTYESTBS 
+				  ( SCRTY_DTRMN_TRGET_ID
+                  , MBER_TY_CODE
+				  , AUTHOR_CODE)
+		   VALUES ( #{uniqId}
+                  , #{mberTyCode}
+                  , #{authorCode})
+		
+	</insert>
+
+	<update id="updateAuthorGroup" parameterType="egovframework.com.sec.rgm.service.AuthorGroup">
+		
+			UPDATE TN_EMPLYRSCRTYESTBS 
+			   SET MBER_TY_CODE=#{mberTyCode}
+                 , AUTHOR_CODE=#{authorCode}
+		  	 WHERE SCRTY_DTRMN_TRGET_ID=#{uniqId}
+		
+	</update>
+
+	<delete id="deleteAuthorGroup">
+		
+			DELETE FROM TN_EMPLYRSCRTYESTBS 
+			 WHERE SCRTY_DTRMN_TRGET_ID=#{uniqId}
+		
+	</delete>
+
+	<select id="selectAuthorGroupListTotCnt" parameterType="egovframework.com.sec.rgm.service.AuthorGroupVO" resultType="int">
+
+            SELECT COUNT(*) AS totcnt
+              FROM (SELECT 
+            			   USER_ID,
+            			   USER_NM
+            		FROM
+            			   TN_USERS ) A LEFT OUTER JOIN TN_EMPLYRSCRTYESTBS B
+                ON A.USER_ID = B.SCRTY_DTRMN_TRGET_ID
+             WHERE 1 = 1   
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchCondition == 1">AND
+                       A.USER_ID LIKE CONCAT('%' , #{searchKeyword}, '%')
+                </if>
+                <if test="searchCondition == 2">AND
+                       A.USER_NM LIKE CONCAT('%' , #{searchKeyword}, '%')
+                </if>
+                <if test="searchCondition == 3">AND
+                       A.GROUP_ID = #{searchKeyword}
+                </if>
+            </if>
+	</select>
+
+</mapper>

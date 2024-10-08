@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:57 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ftpIntrlManageDAO">
+
+	<resultMap id="ftpIntrl" type="egovframework.bopr.jim.service.FtpIntrlManageVO">
+		<result property="ftpIntrlckNo" column="FTP_INTRLCK_NO"/>
+		<result property="ftpIntrlckNm" column="FTP_INTRLCK_NM"/>
+		<result property="ftpAdres" column="FTP_ADRES"/>
+		<result property="userId" column="USER_ID"/>
+		<result property="password" column="PASSWORD"/>
+		<result property="cfgWdtbPath" column="CFG_WDTB_PATH"/>
+		<result property="batchWdtbPath" column="BATCH_WDTB_PATH"/>
+		<result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+		<result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+		<result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+		<result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+	</resultMap>
+
+	<select id="selectFtpIntrlList" parameterType="egovframework.bopr.jim.service.FtpIntrlManageVO" resultMap="ftpIntrl">
+        
+            SELECT  * 
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.* 
+              FROM  (
+
+            SELECT
+                   FTP_INTRLCK_NO
+            	 , FTP_INTRLCK_NM
+            	 , FTP_ADRES
+            	 , USER_ID
+            	 , PASSWORD
+            	 , BATCH_WDTB_PATH
+            	 , CFG_WDTB_PATH
+            	 , FRST_REGISTER_ID
+            	 , TO_CHAR(FRST_REGIST_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM  
+                 , LAST_UPDUSR_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM  
+              FROM TN_FTP_INTRLCK
+             WHERE 1=1
+        
+		<if test="searchCondition == 1">AND
+			FTP_INTRLCK_NM LIKE '%' || #{searchKeyword} || '%'
+            </if>
+                    
+            ORDER BY LAST_UPDT_PNTTM DESC
+
+                    ) ALL_LIST
+                    )
+             WHERE  RNUM  &gt; #{firstIndex}
+               AND  RNUM &lt;= #{firstIndex} + #{recordCountPerPage}
+        
+	</select>
+
+	<insert id="insertFtpIntrl" parameterType="egovframework.bopr.jim.service.FtpIntrlManage">
+        
+            INSERT INTO TN_FTP_INTRLCK
+                  ( FTP_INTRLCK_NO
+            	  , FTP_INTRLCK_NM
+            	  , FTP_ADRES
+            	  , USER_ID
+              	  , PASSWORD
+              	  , BATCH_WDTB_PATH
+            	  , CFG_WDTB_PATH
+             	  , FRST_REGISTER_ID
+            	  , FRST_REGIST_PNTTM
+            	  , LAST_UPDUSR_ID
+            	  , LAST_UPDT_PNTTM)
+           VALUES ( #{ftpIntrlckNo}
+                  , #{ftpIntrlckNm}
+                  , #{ftpAdres}
+                  , #{userId}
+                  , #{password}
+                  , #{batchWdtbPath}
+                  , #{cfgWdtbPath}
+                  , #{frstRegisterId}
+                  , SYSDATE
+                  , #{lastUpdusrId}
+                  , SYSDATE)
+        
+	</insert>
+
+	<update id="updateFtpIntrl" parameterType="egovframework.bopr.jim.service.FtpIntrlManage">
+        
+            UPDATE TN_FTP_INTRLCK 
+               SET FTP_INTRLCK_NO=#{ftpIntrlckNo}
+            	 , FTP_INTRLCK_NM=#{ftpIntrlckNm}
+            	 , FTP_ADRES=#{ftpAdres}
+            	 , USER_ID=#{userId}
+            	 , PASSWORD=#{password}
+            	 , BATCH_WDTB_PATH=#{batchWdtbPath}
+            	 , CFG_WDTB_PATH=#{cfgWdtbPath}
+            	 , FRST_REGISTER_ID=#{frstRegisterId}
+            	 , FRST_REGIST_PNTTM=SYSDATE
+            	 , LAST_UPDUSR_ID=#{lastUpdusrId}
+            	 , LAST_UPDT_PNTTM=SYSDATE
+             WHERE FTP_INTRLCK_NO=#{ftpIntrlckNo}
+        
+	</update>
+
+	<delete id="deleteFtpIntrl">
+        
+            DELETE FROM TN_FTP_INTRLCK 
+             WHERE FTP_INTRLCK_NO=#{ftpIntrlckNo}
+        
+	</delete>
+
+	<select id="selectFtpIntrlListTotCnt" parameterType="egovframework.bopr.jim.service.FtpIntrlManageVO" resultType="int">
+		SELECT COUNT(*) totcnt
+		FROM TN_FTP_INTRLCK
+		WHERE 1=1
+		<if test="searchCondition == 1">AND
+			FTP_INTRLCK_NM LIKE '%' || #{searchKeyword} || '%'
+        </if>
+	</select>
+
+	<select id="selectFtpIntrl" parameterType="egovframework.bopr.jim.service.FtpIntrlManageVO" resultMap="ftpIntrl">
+        
+            SELECT FTP_INTRLCK_NO
+            	 , FTP_INTRLCK_NM
+            	 , FTP_ADRES
+            	 , USER_ID
+            	 , PASSWORD
+            	 , BATCH_WDTB_PATH
+            	 , CFG_WDTB_PATH
+            	 , FRST_REGISTER_ID
+            	 , TO_CHAR(FRST_REGIST_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM  
+                 , LAST_UPDUSR_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM  
+              FROM TN_FTP_INTRLCK
+             WHERE FTP_INTRLCK_NO=#{ftpIntrlckNo}
+        
+		<if test="searchCondition == 1">AND
+			FTP_INTRLCK_NM LIKE '%' || #{searchKeyword} || '%'
+        </if>
+	</select>
+</mapper>

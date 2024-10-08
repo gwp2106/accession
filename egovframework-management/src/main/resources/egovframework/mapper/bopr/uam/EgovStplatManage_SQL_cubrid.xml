@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:58 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="stplatManageDAO">
+
+	<!--
+		Sorry, I can`t migrate	egovMap
+		See console output for further details 
+	-->
+    <!--
+		Sorry, I can`t migrate	UserManageVO
+		See console output for further details 
+	-->
+    <!--
+		Sorry, I can`t migrate	UserManage
+		See console output for further details 
+	-->
+    <!--
+		Sorry, I can`t migrate	StplatVO
+		See console output for further details 
+	-->
+
+    <resultMap id="stplatMap" type="egovframework.bopr.uam.service.StplatVO">
+        <result property="useStplatId" column="USE_STPLAT_ID"/>
+        <result property="useStplatCn" column="USE_STPLAT_CN"/>
+        <result property="infoProvdAgeCn" column="INFO_PROVD_AGRE_CN"/>
+        <result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+        <result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+        <result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+    </resultMap>
+
+    <select id="stplatManageDAO.selectStplat" resultMap="stplatMap">
+        
+            SELECT	USE_STPLAT_ID
+                  ,	USE_STPLAT_CN
+                  , INFO_PROVD_AGRE_CN
+                  , FRST_REGISTER_ID
+                  , TO_CHAR(FRST_REGIST_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM  
+                  , LAST_UPDUSR_ID
+                  , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM  
+            FROM TN_STPLATINFO
+            WHERE USE_STPLAT_ID=#{useStplatId}
+        
+    </select>
+
+    <update id="stplatManageDAO.updateStplat" parameterType="egovframework.bopr.uam.service.StplatVO">
+        
+            UPDATE TN_STPLATINFO 
+               SET USE_STPLAT_CN=#{useStplatCn}
+                 , INFO_PROVD_AGRE_CN=#{infoProvdAgeCn}
+                 , LAST_UPDUSR_ID=#{lastUpdusrId}
+            	 , LAST_UPDT_PNTTM=SYSDATETIME
+             WHERE USE_STPLAT_ID=#{useStplatId}
+        
+    </update>
+
+    <insert id="stplatManageDAO.insertStplat" parameterType="egovframework.bopr.uam.service.StplatVO">
+        
+            INSERT INTO TN_STPLATINFO 
+                 ( USE_STPLAT_ID
+                 , USE_STPLAT_CN
+                 , INFO_PROVD_AGRE_CN
+                 , FRST_REGISTER_ID
+            	 , FRST_REGIST_PNTTM  
+                 , LAST_UPDUSR_ID
+            	 , LAST_UPDT_PNTTM  
+                   )
+           VALUES ( #{useStplatId} 
+		           ,'내용이 없습니다'
+		           ,'내용이 없습니다'
+		           ,#{frstRegisterId} 
+		           ,SYSDATETIME
+		           ,#{frstRegisterId} 
+		           ,SYSDATETIME
+		           )
+          
+    </insert>
+</mapper>

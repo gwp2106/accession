@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:55 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="authorManageDAO">
+
+    <resultMap id="author" type="egovframework.com.sec.ram.service.AuthorManageVO">
+        <result property="authorCode" column="AUTHOR_CODE"/>
+        <result property="authorNm" column="AUTHOR_NM"/>
+        <result property="authorDc" column="AUTHOR_DC"/>
+        <result property="authorCreatDe" column="AUTHOR_CREAT_DE"/>
+    </resultMap>
+
+    <select id="selectAuthorList" parameterType="egovframework.com.sec.ram.service.AuthorManageVO" resultMap="author">
+        
+            SELECT  * 
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.* 
+              FROM  (
+
+            SELECT
+                   AUTHOR_CODE, AUTHOR_NM, AUTHOR_DC, TO_CHAR(AUTHOR_CREAT_DE, 'YYYY-MM-DD HH24:MI:SS') AS AUTHOR_CREAT_DE
+              FROM TN_AUTHORINFO
+             WHERE 1=1
+                      
+            <if test="searchCondition == 1">AND
+                AUTHOR_NM LIKE '%'||#{searchKeyword}||'%'
+            </if>
+                    
+            ORDER BY AUTHOR_CREAT_DE DESC
+
+                    ) ALL_LIST
+                    ) T
+             WHERE  RNUM  &gt; #{firstIndex}
+               AND  RNUM &lt;= #{firstIndex} + #{recordCountPerPage}
+                         
+    </select>
+
+    <insert id="insertAuthor" parameterType="egovframework.com.sec.ram.service.AuthorManage">
+        
+            INSERT INTO TN_AUTHORINFO 
+                  ( AUTHOR_CODE
+                  , AUTHOR_NM
+                  , AUTHOR_DC
+                  , AUTHOR_CREAT_DE )
+           VALUES ( #{authorCode}
+                  , #{authorNm}
+                  , #{authorDc}
+                  , SYSDATETIME)
+          
+    </insert>
+
+    <update id="updateAuthor" parameterType="egovframework.com.sec.ram.service.AuthorManage">
+        
+            UPDATE TN_AUTHORINFO 
+               SET AUTHOR_NM=#{authorNm}
+                 , AUTHOR_DC=#{authorDc}
+             WHERE AUTHOR_CODE=#{authorCode}
+        
+    </update>
+
+    <delete id="deleteAuthor">
+        
+            DELETE FROM TN_AUTHORINFO 
+             WHERE AUTHOR_CODE=#{authorCode}
+        
+    </delete>
+
+    <select id="selectAuthor" resultMap="author">
+        
+            SELECT AUTHOR_CODE, AUTHOR_NM, AUTHOR_DC, TO_CHAR(AUTHOR_CREAT_DE, 'YYYY-MM-DD HH24:MI:SS') AS AUTHOR_CREAT_DE
+              FROM TN_AUTHORINFO 
+             WHERE AUTHOR_CODE=#{authorCode}
+        
+    </select>
+
+    <select id="selectAuthorListTotCnt" parameterType="egovframework.com.sec.ram.service.AuthorManageVO" resultType="int">
+            SELECT COUNT(*) totcnt
+            FROM TN_AUTHORINFO
+            WHERE 1=1
+            <if test="searchCondition == 1">AND
+                AUTHOR_NM LIKE '%'||#{searchKeyword}||'%'
+            </if>
+    </select>
+
+    <select id="selectAuthorAllList" parameterType="egovframework.com.sec.ram.service.AuthorManageVO" resultMap="author">
+            SELECT
+                   AUTHOR_CODE, AUTHOR_NM, AUTHOR_DC, TO_CHAR(AUTHOR_CREAT_DE, 'YYYY-MM-DD HH24:MI:SS') AS AUTHOR_CREAT_DE
+              FROM TN_AUTHORINFO
+    </select>
+
+    <select id="checkCode" resultType="int">
+        
+            SELECT COUNT(1) usedCnt
+                FROM(
+                SELECT
+                    AUTHOR_CODE             authorCode
+                FROM    TN_AUTHORINFO
+                ) A
+            WHERE authorCode = #{checkCode}
+        
+    </select>
+</mapper>

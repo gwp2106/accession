@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:55 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BatchInfoDAO">
+
+    <resultMap id="batchInfoList" type="egovframework.bopr.sim.service.BatchInfoVO">
+        <result property="batchId" column="BATCH_ID"/>
+        <result property="batchNm" column="BATCH_NM"/>
+        <result property="batchDc" column="BATCH_DC"/>
+        <result property="jobDlbrtNo" column="JOB_DLBRT_NO"/>
+        <result property="jobSeCode" column="JOB_SE_CODE"/>
+        <result property="jobSeCodeNm" column="JOB_SE_CODE_NM"/>
+        <result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="lastUpdtPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="onlineExecutAt" column="ONLINE_EXECUT_AT"/>
+    </resultMap>
+
+    <resultMap id="atchFile" type="egovframework.bopr.sim.service.BatchAtchFileVO">
+        <result property="atchFileId" column="ATCH_FILE_ID"/>
+        <result property="atchSeCode" column="ATCH_SE_CODE"/>
+        <result property="wdtbPath" column="WDTB_PATH"/>
+        <result property="batchFileNm" column="BATCH_FILE_NM"/>
+    </resultMap>
+
+    <resultMap id="batchParamtr" type="egovframework.bopr.sim.service.BatchParamtrVO">
+    	<result property="batchId" column="BATCH_ID"/>
+    	<result property="paramtrNm" column="PARAMTR_NM"/>
+    </resultMap>
+
+    <resultMap id="batchBean" type="egovframework.bopr.sim.service.BatchBeanVO">
+    	<result property="batchId" column="BATCH_ID"/>
+    	<result property="beanId" column="BEAN_ID"/>
+    </resultMap>
+
+    <select id="selectBatchInfoList" parameterType="egovframework.bopr.sim.service.BatchInfoVO" resultMap="batchInfoList">
+
+        SELECT A.*
+        FROM
+            ( SELECT
+                  A.BATCH_ID
+                , A.BATCH_NM
+                , CASE WHEN CHAR_LENGTH(A.BATCH_DC) &gt; 20 THEN CONCAT(SUBSTRING(A.BATCH_DC, 1, 20), '..')
+                       ELSE A.BATCH_DC
+                  END as BATCH_DC
+                , A.JOB_DLBRT_NO
+                , A.JOB_SE_CODE
+                , ( SELECT S.CODE_NM FROM TC_CMMNDETAILCODE S WHERE S.CODE_ID = 'BO001' AND S.CODE = A.JOB_SE_CODE ) as JOB_SE_CODE_NM
+                , CONVERT(DATE_FORMAT(A.FRST_REGIST_PNTTM, '%Y-%m-%d'), CHAR) AS FRST_REGIST_PNTTM
+                , CONVERT(DATE_FORMAT(A.LAST_UPDT_PNTTM, '%Y-%m-%d'), CHAR) AS LAST_UPDT_PNTTM
+                , ( SELECT S.CODE_NM FROM TC_CMMNDETAILCODE S WHERE S.CODE_ID = 'BO013' AND S.CODE = COALESCE(A.ONLINE_EXECUT_AT, 'N') ) as ONLINE_EXECUT_AT
+              FROM
+                  TN_BATCH A
+              WHERE 1 = 1
+                AND A.DELETE_AT = 'N'
+	              
+            <if test="searchCondition == &quot;A&quot;">AND
+                A.BATCH_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+            </if>    
+            <if test="searchCondition == &quot;B&quot;">AND
+                A.BATCH_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+            </if>
+            <if test="onlineExecutAt == &quot;SEARCH&quot;">AND
+                A.ONLINE_EXECUT_AT = 'Y'
+            </if>
+            <if test="jobSeCode != null and jobSeCode != ''">AND
+                A.JOB_SE_CODE = #{jobSeCode}
+            </if>
+
+              ORDER BY A.FRST_REGIST_PNTTM DESC, A.LAST_UPDT_PNTTM DESC,  A.BATCH_ID DESC
+            ) A
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+
+	</select>
+
+    <select id="selectBatchInfoListTotCnt" parameterType="egovframework.bopr.sim.service.BatchInfoVO" resultType="int">
+
+        SELECT COUNT(1) as TOT_CNT
+        FROM TN_BATCH A
+        WHERE 1 = 1
+          AND A.DELETE_AT = 'N'
+	              
+        <if test="searchCondition == &quot;A&quot;">AND
+          A.BATCH_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>       
+        <if test="searchCondition == &quot;B&quot;">AND
+          A.BATCH_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+        <if test="onlineExecutAt == &quot;SEARCH&quot;">AND
+            A.ONLINE_EXECUT_AT = 'Y'
+        </if>
+        <if test="jobSeCode != null and jobSeCode != ''">AND
+            A.JOB_SE_CODE = #{jobSeCode}
+        </if>
+	</select>
+
+    <select id="selectBatchInfo" parameterType="egovframework.bopr.sim.service.BatchInfoVO" resultMap="batchInfoList">
+
+        SELECT
+            A.BATCH_ID
+          , A.BATCH_NM
+          , A.BATCH_DC
+          , A.JOB_DLBRT_NO
+          , A.JOB_SE_CODE
+          , ( SELECT S.CODE_NM FROM TC_CMMNDETAILCODE S WHERE S.CODE_ID = 'BO001' AND S.CODE = A.JOB_SE_CODE ) as JOB_SE_CODE_NM
+          , CONVERT(DATE_FORMAT(A.FRST_REGIST_PNTTM, '%Y-%m-%d'), CHAR) AS FRST_REGIST_PNTTM
+          , CONVERT(DATE_FORMAT(A.LAST_UPDT_PNTTM, '%Y-%m-%d'), CHAR) AS LAST_UPDT_PNTTM
+          , COALESCE(A.ONLINE_EXECUT_AT, 'N') as ONLINE_EXECUT_AT
+        FROM
+            TN_BATCH A
+        WHERE A.BATCH_ID = #{batchId}
+          AND A.DELETE_AT = 'N'
+        
+</select>
+
+    <select id="selectBatchAtchFileList" parameterType="egovframework.bopr.sim.service.BatchInfoVO" resultMap="atchFile">
+
+    	SELECT
+    	    A.ATCH_FILE_ID
+    	  , A.ATCH_SE_CODE
+    	  , A.WDTB_PATH
+    	  , A.BATCH_FILE_NM
+    	FROM
+    	    TN_BATCH_ATCH_FILE A
+    	  , TN_BATCH B
+    	WHERE A.BATCH_ID = B.BATCH_ID
+    	  AND B.DELETE_AT = 'N'
+    	  AND A.BATCH_ID = #{batchId}
+    	
+</select>
+
+    <select id="selectBatchAtchFile" parameterType="egovframework.bopr.sim.service.BatchAtchFileVO" resultMap="atchFile">
+
+    	SELECT
+    	    A.ATCH_FILE_ID
+    	  , A.ATCH_SE_CODE
+    	  , A.WDTB_PATH
+    	  , A.BATCH_FILE_NM
+    	FROM
+    	    TN_BATCH_ATCH_FILE A
+    	  , TN_BATCH B
+    	WHERE A.BATCH_ID = B.BATCH_ID
+    	  AND B.DELETE_AT = 'N'
+    	  AND A.BATCH_ID = #{batchId}
+    	  AND A.ATCH_FILE_ID = #{atchFileId}
+    	
+</select>
+
+    <insert id="insertBatchInfo" parameterType="egovframework.bopr.sim.service.BatchInfoVO">
+    	
+    	INSERT INTO TN_BATCH
+    	(
+    		BATCH_ID
+    	  , BATCH_NM
+    	  , BATCH_DC
+    	  , JOB_DLBRT_NO
+    	  , JOB_SE_CODE
+    	  , ONLINE_EXECUT_AT
+    	  , FRST_REGISTER_ID
+    	  , FRST_REGIST_PNTTM
+    	  , LAST_UPDUSR_ID
+    	  , LAST_UPDT_PNTTM
+    	  , DELETE_AT
+    	)
+    	VALUES
+    	(
+    	    #{batchId}
+    	  , #{batchNm}
+    	  , #{batchDc}
+    	  , #{jobDlbrtNo}
+    	  , #{jobSeCode}
+    	  , COALESCE(#{onlineExecutAt}, 'N')
+    	  , #{frstRegisterId}
+    	  , SYSDATE()
+    	  , #{lastUpdusrId}
+    	  , SYSDATE()
+    	  , 'N'
+    	)
+    	
+    </insert>
+
+    <insert id="insertBatchInfoHistory" parameterType="egovframework.bopr.sim.service.BatchInfoVO">
+
+    	INSERT INTO TH_BATCH
+    	(
+    	    BATCH_ID
+    	  , BATCH_NO
+    	  , BATCH_NM
+    	  , BATCH_DC
+    	  , JOB_DLBRT_NO
+    	  , JOB_SE_CODE
+    	  , ONLINE_EXECUT_AT
+    	  , DELETE_AT
+    	  , FRST_REGISTER_ID
+    	  , FRST_REGIST_PNTTM
+    	  , LAST_UPDUSR_ID
+    	  , LAST_UPDT_PNTTM
+    	)
+    	SELECT
+    	    A.BATCH_ID
+    	  , ( SELECT COALESCE(MAX(S.BATCH_NO+1), '0') FROM TH_BATCH S WHERE S.BATCH_ID = A.BATCH_ID )
+    	  , A.BATCH_NM
+    	  , A.BATCH_DC
+    	  , A.JOB_DLBRT_NO
+    	  , A.JOB_SE_CODE
+    	  , A.ONLINE_EXECUT_AT
+    	  , A.DELETE_AT
+    	  , #{frstRegisterId}
+    	  , SYSDATE()
+    	  , #{lastUpdusrId}
+    	  , SYSDATE()
+    	FROM
+    	    TN_BATCH A
+    	WHERE A.BATCH_ID = #{batchId}
+    	
+</insert>
+
+    <insert id="insertBatchAtchFile" parameterType="egovframework.bopr.sim.service.BatchAtchFileVO">
+    	
+    	INSERT INTO TN_BATCH_ATCH_FILE
+    	(
+    	    BATCH_ID
+    	  , ATCH_FILE_ID
+    	  , BATCH_FILE_NM
+    	  , WDTB_PATH
+    	  , ATCH_SE_CODE
+    	  , FRST_REGISTER_ID
+    	  , FRST_REGIST_PNTTM
+    	  , LAST_UPDUSR_ID
+    	  , LAST_UPDT_PNTTM
+    	)
+    	VALUES
+    	(
+    	    #{batchId}
+    	  , #{atchFileId}
+    	  , #{batchFileNm}
+    	  , #{wdtbPath}
+    	  , #{atchSeCode}
+    	  , #{frstRegisterId}
+    	  , SYSDATE()
+    	  , #{lastUpdusrId}
+    	  , SYSDATE()
+    	)
+    	
+    </insert>
+
+    <delete id="deleteBatchAtchFilePast" parameterType="egovframework.bopr.sim.service.BatchAtchFileVO">
+    	
+    	DELETE FROM TN_BATCH_ATCH_FILE
+    	WHERE BATCH_ID = #{batchId}
+    	  AND WDTB_PATH = #{wdtbPath}
+    	  AND ATCH_FILE_ID IN ( SELECT S.ATCH_FILE_ID FROM TN_FILEDETAIL S WHERE S.ORIGNL_FILE_NM = #{fileNm} )
+    	
+    </delete>
+
+    <delete id="deleteBatchAtchFile" parameterType="egovframework.bopr.sim.service.BatchAtchFileVO">
+    	
+    	DELETE FROM TN_BATCH_ATCH_FILE
+    	WHERE BATCH_ID = #{batchId}
+    	  AND ATCH_FILE_ID = #{atchFileId}
+    	
+    </delete>
+
+    <update id="updateBatchInfo" parameterType="egovframework.bopr.sim.service.BatchInfoVO">
+    	
+    	UPDATE TN_BATCH
+    	SET
+    	    BATCH_NM = #{batchNm}
+    	  , BATCH_DC = #{batchDc}
+    	  , JOB_DLBRT_NO = #{jobDlbrtNo}
+    	  , JOB_SE_CODE = #{jobSeCode}
+    	  , ONLINE_EXECUT_AT = #{onlineExecutAt}
+    	  , LAST_UPDUSR_ID = #{lastUpdusrId}
+    	  , LAST_UPDT_PNTTM = SYSDATE()
+    	WHERE BATCH_ID = #{batchId}
+    	
+    </update>
+
+    <delete id="deleteBatchInfo" parameterType="egovframework.bopr.sim.service.BatchInfoVO">
+
+    	UPDATE TN_BATCH
+    	SET
+    	    DELETE_AT = 'Y'
+    	  , LAST_UPDUSR_ID = #{lastUpdusrId}
+    	  , LAST_UPDT_PNTTM = SYSDATE()
+    	WHERE BATCH_ID = #{batchId}
+
+</delete>
+
+    <delete id="deleteBatchInfoHistory" parameterType="egovframework.bopr.sim.service.BatchInfoVO">
+
+    	DELETE FROM TH_BATCH
+    	WHERE BATCH_ID = #{batchId}
+
+    </delete>
+
+    <delete id="deleteBatchParamtrs" parameterType="egovframework.bopr.sim.service.BatchParamtrVO">
+
+    	DELETE FROM TN_BATCH_PARAMTR
+    	WHERE 1 = 1
+
+    	<if test="batchId != null and batchId != ''">AND
+    	
+    	  BATCH_ID = #{batchId}
+    	
+    	</if>
+    	<if test="paramtrNm != null and paramtrNm != ''">AND
+    	
+    	  PARAMTR_NM = #{paramtrNm}
+    	
+    	</if>
+    </delete>
+
+    <insert id="insertBatchParamtr" parameterType="egovframework.bopr.sim.service.BatchParamtrVO">
+
+    	INSERT INTO TN_BATCH_PARAMTR
+    	(
+    		BATCH_ID
+    	  , PARAMTR_NM
+    	)
+    	VALUES
+    	(
+    		#{batchId}
+    	  , #{paramtrNm}
+    	)
+
+    </insert>
+
+    <select id="selectBatchParamtrList" parameterType="egovframework.bopr.sim.service.BatchParamtrVO" resultMap="batchParamtr">
+
+    	SELECT
+    	    BATCH_ID
+    	  , PARAMTR_NM
+    	FROM
+    	    TN_BATCH_PARAMTR
+    	WHERE 1 = 1
+
+    	<if test="batchId != null and batchId != ''">AND
+    	
+    	  BATCH_ID = #{batchId}
+    	
+    	</if>
+    	<if test="paramtrNm != null and paramtrNm != ''">AND
+    	
+    	  PARAMTR_NM = #{paramtrNm}
+    	
+    	</if>
+    </select>
+
+    <select id="selectBatchBeanList" parameterType="egovframework.bopr.sim.service.BatchInfoVO" resultMap="batchBean">
+
+    	SELECT
+    	    BATCH_ID
+    	  , BEAN_ID
+    	FROM
+    	    TN_BATCH_BEAN
+    	WHERE 1 = 1
+
+    	<if test="batchId != null and batchId != ''">AND
+
+    	  BATCH_ID = #{batchId}
+
+    	</if>
+    	
+    </select>
+
+    <insert id="insertBatchBean" parameterType="egovframework.bopr.sim.service.BatchBeanVO">
+
+    	INSERT INTO TN_BATCH_BEAN
+    	(
+    	    BATCH_ID
+    	  , BEAN_ID
+    	)
+    	VALUES
+    	(
+    	    #{batchId}
+    	  , #{beanId}
+    	)
+
+    </insert>
+
+    <delete id="deleteBatchBean" parameterType="egovframework.bopr.sim.service.BatchInfoVO">
+
+    	DELETE FROM TN_BATCH_BEAN
+    	WHERE 1 = 1
+    	  AND BATCH_ID = #{batchId}
+
+    </delete>
+
+</mapper>

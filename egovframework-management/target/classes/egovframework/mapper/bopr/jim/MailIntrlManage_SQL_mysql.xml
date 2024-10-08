@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:58 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mailIntrlManageDAO">
+
+	<resultMap id="mailIntrl" type="egovframework.bopr.jim.service.MailIntrlManageVO">
+		<result property="emailIntrlckNo" column="EMAIL_INTRLCK_NO"/>
+		<result property="emailIntrlckNm" column="EMAIL_INTRLCK_NM"/>
+		<result property="emailAdres" column="EMAIL_ADRES"/>
+		<result property="ipInfo" column="IP_INFO"/>
+		<result property="userId" column="USER_ID"/>
+		<result property="password" column="PASSWORD"/>
+		<result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+		<result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+		<result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+		<result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+	</resultMap>
+
+	<select id="selectMailIntrlList" parameterType="egovframework.bopr.jim.service.MailIntrlManageVO" resultMap="mailIntrl">
+        
+            SELECT  A.* 
+              FROM  (
+            SELECT ALL_LIST.* 
+              FROM  (
+
+            SELECT
+                   EMAIL_INTRLCK_NO
+            	 , EMAIL_INTRLCK_NM
+            	 , EMAIL_ADRES
+            	 , IP_INFO
+            	 , USER_ID
+            	 , PASSWORD
+            	 , FRST_REGISTER_ID
+            	 , FRST_REGIST_PNTTM
+            	 , LAST_UPDUSR_ID
+            	 , LAST_UPDT_PNTTM
+              FROM TN_EMAIL_INTRLCK
+             WHERE 1=1
+        
+		<if test="searchCondition == 1">AND
+			EMAIL_INTRLCK_NM LIKE concat('%',#{searchKeyword},'%')
+            </if>
+                    
+            ORDER BY LAST_UPDT_PNTTM DESC
+
+                    ) ALL_LIST
+                    ) A
+             LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+        
+	</select>
+
+	<insert id="insertMailIntrl" parameterType="egovframework.bopr.jim.service.MailIntrlManage">
+        
+            INSERT INTO TN_EMAIL_INTRLCK
+                  ( EMAIL_INTRLCK_NO
+            	  , EMAIL_INTRLCK_NM
+            	  , EMAIL_ADRES
+            	  , IP_INFO
+            	  , USER_ID
+              	  , PASSWORD
+             	  , FRST_REGISTER_ID
+            	  , FRST_REGIST_PNTTM
+            	  , LAST_UPDUSR_ID
+            	  , LAST_UPDT_PNTTM)
+           VALUES ( #{emailIntrlckNo}
+                  , #{emailIntrlckNm}
+                  , #{emailAdres}
+                  , #{ipInfo}
+                  , #{userId}
+                  , #{password}
+                  , #{frstRegisterId}
+                  , SYSDATE()
+                  , #{lastUpdusrId}
+                  , SYSDATE())
+        
+	</insert>
+
+	<update id="updateMailIntrl" parameterType="egovframework.bopr.jim.service.MailIntrlManage">
+        
+            UPDATE TN_EMAIL_INTRLCK 
+               SET EMAIL_INTRLCK_NM=#{emailIntrlckNm}
+            	 , EMAIL_ADRES=#{emailAdres}
+            	 , IP_INFO=#{ipInfo}
+            	 , USER_ID=#{userId}
+            	 , PASSWORD=#{password}
+            	 , LAST_UPDUSR_ID=#{lastUpdusrId}
+            	 , LAST_UPDT_PNTTM=SYSDATE()
+             WHERE EMAIL_INTRLCK_NO=#{emailIntrlckNo}
+        
+	</update>
+
+	<delete id="deleteMailIntrl">
+        
+            DELETE FROM TN_EMAIL_INTRLCK 
+             WHERE EMAIL_INTRLCK_NO=#{emailIntrlckNo}
+        
+	</delete>
+
+	<select id="selectMailIntrlListTotCnt" parameterType="egovframework.bopr.jim.service.MailIntrlManageVO" resultType="int">
+		SELECT COUNT(*) totcnt
+		FROM TN_EMAIL_INTRLCK
+		WHERE 1=1
+		<if test="searchCondition == 1">AND
+			EMAIL_INTRLCK_NO LIKE '%'||#{searchKeyword}||'%'
+            </if>
+	</select>
+
+	<select id="selectMailIntrl" parameterType="egovframework.bopr.jim.service.MailIntrlManageVO" resultMap="mailIntrl">
+        
+            SELECT EMAIL_INTRLCK_NO
+            	 , EMAIL_INTRLCK_NM
+            	 , EMAIL_ADRES
+            	 , IP_INFO
+            	 , USER_ID
+            	 , PASSWORD
+            	 , FRST_REGISTER_ID
+            	 , FRST_REGIST_PNTTM
+            	 , LAST_UPDUSR_ID
+            	 , LAST_UPDT_PNTTM
+              FROM TN_EMAIL_INTRLCK
+             WHERE EMAIL_INTRLCK_NO=#{emailIntrlckNo}
+        
+		<if test="searchCondition == 1">AND
+			EMAIL_INTRLCK_NM LIKE '%'||#{searchKeyword}||'%'
+            </if>
+	</select>
+</mapper>

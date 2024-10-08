@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Mon Nov 08 19:45:58 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jobIssueManageDAO">
+
+	<resultMap id="jobIssue" type="egovframework.bopr.ikm.service.JobIssueManageVO">
+        <result property="issueNo" column="ISSUE_NO"/>
+        <result property="issueSj" column="ISSUE_SJ"/>
+        <result property="issueCn" column="ISSUE_CN"/>
+        <result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+        <result property="frstRegistPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+        <result property="lastUpdtPnttm" column="LAST_UPDT_PNTTM"/>
+        <result property="atchFileId" column="ATCH_FILE_ID"/>
+        <result property="issueSttusCode" column="ISSUE_STTUS_CODE"/>
+        <result property="issueOccrrncDe" column="ISSUE_OCCRRNC_DE"/>
+        <result property="issueLvCode" column="ISSUE_LV_CODE"/>
+        <result property="issueTyCode" column="ISSUE_TY_CODE"/>
+        <result property="othbcAt" column="OTHBC_AT"/>
+    </resultMap>
+
+    <resultMap id="issueAnswer" type="egovframework.bopr.ikm.service.IssueAnwserVO">
+        <result property="answerNo" column="ANSWER_NO"/>
+        <result property="issueSttusCode" column="ISSUE_STTUS_CODE"/>
+        <result property="answerCn" column="ANSWER_CN"/>
+        <result property="answerRegisterId" column="ANSWER_REGISTER_ID"/>
+        <result property="answerRegistPnttm" column="ANSWER_REGIST_PNTTM"/>
+    </resultMap>
+
+    <select id="selectJobIssueList" parameterType="egovframework.bopr.ikm.service.JobIssueManageVO" resultMap="jobIssue">
+        
+             SELECT  * 
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.* 
+              FROM(
+
+            SELECT
+                   ISSUE_NO
+            	 , ISSUE_SJ
+            	 , ISSUE_CN
+            	 , FRST_REGISTER_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM
+            	 , LAST_UPDUSR_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM  
+            	 , ATCH_FILE_ID
+            	 , ISSUE_STTUS_CODE
+            	 , ISSUE_OCCRRNC_DE
+            	 , ISSUE_LV_CODE
+            	 , ISSUE_TY_CODE
+            	 , OTHBC_AT
+              FROM TN_ISSUE
+             WHERE 1=1
+                      
+            <if test="searchCondition == 1">AND
+                ISSUE_SJ LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 2">AND
+                ISSUE_CN LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 3">AND
+                FRST_REGISTER_ID LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 4">AND
+                ISSUE_STTUS_CODE = #{searchKeyword}
+            </if>
+            <if test="adminYn == &quot;N&quot;">AND
+        		(OTHBC_AT = 'Y' OR (OTHBC_AT = 'N' AND FRST_REGISTER_ID = #{loginId}))
+        	</if>
+			
+	        <if test='searchKeywordFrom != ""'>
+	        		AND FRST_REGIST_PNTTM &gt;= TO_DATE(#{searchKeywordFrom},'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+	        <if test='searchKeywordTo != ""'>
+	        		AND FRST_REGIST_PNTTM &lt;= TO_DATE(concat(#{searchKeywordTo},' 23:59:59'),'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+                    
+            ORDER BY LAST_UPDT_PNTTM DESC
+
+                    ) ALL_LIST
+                    )
+             WHERE  RNUM  &gt; #{firstIndex}
+               AND  RNUM &lt;= #{firstIndex} + #{recordCountPerPage}
+                         
+    </select>
+ 
+    <insert id="insertJobIssue" parameterType="egovframework.bopr.ikm.service.JobIssueManage">
+        
+            INSERT INTO TN_ISSUE 
+                  ( ISSUE_NO
+            	  , ISSUE_SJ
+            	  , ISSUE_CN
+            	  , FRST_REGISTER_ID
+            	  , FRST_REGIST_PNTTM
+                  , LAST_UPDUSR_ID
+            	  , LAST_UPDT_PNTTM
+            	  , ATCH_FILE_ID
+            	  , ISSUE_STTUS_CODE
+            	  , ISSUE_OCCRRNC_DE
+            	  , ISSUE_LV_CODE
+            	  , ISSUE_TY_CODE
+            	  , OTHBC_AT)
+           VALUES ( #{issueNo}
+                  , #{issueSj}
+                  , #{issueCn}
+                  , #{frstRegisterId}
+                  , SYSDATE
+                  , #{lastUpdusrId}
+                  , SYSDATE
+                  , #{atchFileId}
+                  , '01'
+                  , #{issueOccrrncDe}
+                  , #{issueLvCode}
+                  , #{issueTyCode}
+                  ,'Y')
+          
+    </insert>
+
+    <update id="updateJobIssue" parameterType="egovframework.bopr.ikm.service.JobIssueManage">
+        
+            UPDATE TN_ISSUE 
+               SET ISSUE_SJ=#{issueSj}
+                 , ISSUE_CN=#{issueCn}
+            	 , LAST_UPDUSR_ID=#{lastUpdusrId}
+            	 , LAST_UPDT_PNTTM=SYSDATE
+            	 , ATCH_FILE_ID=#{atchFileId}
+            	 , ISSUE_STTUS_CODE=#{issueSttusCode}
+            	 , ISSUE_OCCRRNC_DE=#{issueOccrrncDe}
+            	 , ISSUE_LV_CODE=#{issueLvCode}
+            	 , ISSUE_TY_CODE=#{issueTyCode}
+            	 , OTHBC_AT=#{othbcAt}
+
+             WHERE ISSUE_NO=#{issueNo}
+        
+    </update>
+
+    <update id="updateIssueSttus" parameterType="egovframework.bopr.ikm.service.JobIssueManage">
+        
+            UPDATE TN_ISSUE 
+               SET ISSUE_STTUS_CODE=#{issueSttusCode}
+             WHERE ISSUE_NO=#{issueNo}
+        
+    </update>
+
+    <update id="deleteJobIssue">
+        
+       		UPDATE TN_ISSUE 
+               SET OTHBC_AT='N'
+             WHERE ISSUE_NO=#{issueNo}
+        
+    </update>
+
+    <select id="selectJobIssueListTotCnt" parameterType="egovframework.bopr.ikm.service.JobIssueManageVO" resultType="int">
+            SELECT COUNT(*) totcnt
+            FROM TN_ISSUE
+            WHERE 1=1
+            <if test="searchCondition == 1">AND
+                ISSUE_SJ LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 2">AND
+                ISSUE_CN LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 3">AND
+                FRST_REGISTER_ID LIKE '%' || #{searchKeyword} || '%'
+            </if>
+            <if test="searchCondition == 4">AND
+                ISSUE_STTUS_CODE = #{searchKeyword}
+            </if>
+            <if test="adminYn == &quot;N&quot;">AND
+        		(OTHBC_AT = 'Y' OR (OTHBC_AT = 'N' AND FRST_REGISTER_ID = #{loginId}))
+        	</if>
+            
+	        <if test='searchKeywordFrom != ""'>
+	        		AND FRST_REGIST_PNTTM &gt;= TO_DATE(#{searchKeywordFrom},'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+	        <if test='searchKeywordTo != ""'>
+	        		AND FRST_REGIST_PNTTM &lt;= TO_DATE(concat(#{searchKeywordTo},' 23:59:59'),'YYYY-MM-DD HH24:MI:SS')
+	        </if>
+	        
+    </select>
+
+    <select id="selectJobIssue" parameterType="egovframework.bopr.ikm.service.JobIssueManageVO" resultMap="jobIssue">
+        
+            SELECT ISSUE_NO
+            	 , ISSUE_SJ
+            	 , ISSUE_CN
+            	 , FRST_REGISTER_ID
+            	 , TO_CHAR(FRST_REGIST_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REGIST_PNTTM  
+                 , LAST_UPDUSR_ID
+            	 , TO_CHAR(LAST_UPDT_PNTTM, 'YYYY-MM-DD HH24:MI:SS') AS LAST_UPDT_PNTTM  
+            	 , ATCH_FILE_ID
+            	 , ISSUE_STTUS_CODE
+            	 , TO_CHAR(ISSUE_OCCRRNC_DE, 'YYYY-MM-DD') AS ISSUE_OCCRRNC_DE
+            	 , ISSUE_LV_CODE
+            	 , ISSUE_TY_CODE
+            	 , OTHBC_AT
+              FROM TN_ISSUE
+             WHERE ISSUE_NO=#{issueNo}
+        
+    </select>
+
+    <select id="selectIssueAnswerList" parameterType="egovframework.bopr.ikm.service.IssueAnwserVO" resultMap="issueAnswer">
+        
+            SELECT  ANSWER_NO
+            	  , ISSUE_STTUS_CODE
+            	  , ANSWER_CN
+            	  , ANSWER_REGISTER_ID
+            	  , ANSWER_REGIST_PNTTM
+              FROM TN_ISSUE_CMT
+             WHERE     ANSWER_NO=#{answerNo} 
+             
+             ORDER BY ISSUE_STTUS_CODE
+                    
+        
+    </select>
+
+    <insert id="insertIssueAnswer" parameterType="egovframework.bopr.ikm.service.IssueAnwserVO">
+        
+            INSERT INTO TN_ISSUE_CMT 
+                  ( ANSWER_NO
+            	  , ISSUE_STTUS_CODE
+            	  , ANSWER_CN
+            	  , ANSWER_REGISTER_ID
+            	  , ANSWER_REGIST_PNTTM)
+           VALUES ( #{answerNo}
+                  , #{issueSttusCode}
+                  , #{answerCn}
+                  , #{answerRegisterId}
+                  , SYSDATE)            	 
+        
+    </insert>
+
+    <update id="updateIssueAnswer" parameterType="egovframework.bopr.ikm.service.IssueAnwserVO">
+        
+            UPDATE TN_ISSUE_CMT 
+               SET ANSWER_CN=#{answerCn}
+                 , ANSWER_REGISTER_ID=#{answerRegisterId}
+            	 , ANSWER_REGIST_PNTTM=SYSDATE
+
+             WHERE     ANSWER_NO=#{answerNo} 
+                   AND ISSUE_STTUS_CODE=#{issueSttusCode}
+        
+    </update>
+
+    <delete id="deleteIssueAnswer" parameterType="egovframework.bopr.ikm.service.IssueAnwserVO">
+        
+            DELETE FROM TN_ISSUE_CMT 
+             WHERE     ANSWER_NO=#{answerNo} 
+                   AND ISSUE_STTUS_CODE=#{issueSttusCode}
+        
+    </delete>
+
+</mapper>
