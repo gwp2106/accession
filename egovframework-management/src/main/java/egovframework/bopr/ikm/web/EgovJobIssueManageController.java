@@ -35,7 +35,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springmodules.validation.commons.DefaultBeanValidator;
 
 /**
- * JobIssue관리에 관한 controller 클래스
+ * JobIssue관리에 관한 controller 클래스 ㅋㅋ
  * @jobIssue 배치운영환경 김지완
  * @since 2012.07.12
  * @version 1.0
