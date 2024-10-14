@@ -184,7 +184,7 @@ $(document).ready(function() {
 					<div class="left"><img src="/images/egovframework/bopr/new_main/img_metoday_left.gif" alt=""/></div>
 					<div class="center">
 						<h2>
-							<span class="me_tit">오늘의 할일</span>
+							<span class="me_tit">DTS 오늘의 할일</span>
 						</h2>
 						<div class="today_list">
 							<ul>
